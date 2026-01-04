@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { signup } from "@/server/users"
-import { signIn } from "@/lib/auth-client"
+import { socialSignIn } from "@/lib/auth-client"
 export function SignupForm({
   className,
   ...props
@@ -66,11 +66,11 @@ export function SignupForm({
               </Field>
               <Field>
                 <Button type="submit">Signup</Button>
-                <Button variant="outline" type="button" onClick={signIn}>
+                <Button variant="outline" type="button" onClick={socialSignIn}>
                   Signup with Google
                 </Button>
                 <FieldDescription className="text-center">
-                  Already have an account? <a href="#">Sign in</a>
+                  Already have an account? <a href="login">Sign in</a>
                 </FieldDescription>
               </Field>
             </FieldGroup>

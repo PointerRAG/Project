@@ -1,27 +1,34 @@
 "use server"
 
 import { auth } from "@/lib/auth"
+import { success } from "better-auth"
 import { redirect } from "next/navigation"
 
-export async function signin(formdata : FormData){
-    const email = String(formdata.get("email")||"");
-    const password = String(formdata.get("password")||"");
-   
-    try{
-        await auth.api.signInEmail({
-        body : {
-            email,
-            password,   
-
-        },
-    })
-    }
-    catch(error : any){
-        console.error(error);
-        return{error: "Login failed"};
-    }
-    redirect("/dashboard")
+export type SignInState = {   //defining the type for the signin state
+    success : boolean
+    message? : string
 }
+export async function signin(
+    prevstate : SignInState,
+    formdata : FormData) : Promise<SignInState>{
+        try{
+            const email = String(formdata.get("email")||"");
+            const password = String(formdata.get("password")||"");
+
+            await auth.api.signInEmail({
+                body : {
+                    email,
+                    password,   
+
+                },
+            })
+            return{success:true}
+        }
+        catch(error){
+            return {success : false, message: "Invalid Credentials"}
+        }
+    }
+    
 
 export async function signup(formdata : FormData){
     const name = String(formdata.get("name")||"");

@@ -1,0 +1,149 @@
+"use client"
+
+import { useState } from "react"
+import { MessageSquarePlus, LogOut, Search, MoreVertical, Trash2, Sparkles } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Separator } from "@/components/ui/separator"
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarTrigger } from "@/components/ui/sidebar"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { cn } from "@/lib/utils"
+import type { Chat } from "./chat-interface"
+import { ModeToggle } from "@/components/mode-toggle"
+
+interface ChatSidebarProps {
+  chats: Chat[]
+  currentChatId: string | null
+  onSelectChat: (chatId: string) => void
+  onNewChat: () => void
+  onDeleteChat: (chatId: string) => void
+}
+
+export function ChatSidebar({ chats, currentChatId, onSelectChat, onNewChat, onDeleteChat }: ChatSidebarProps) {
+  const [searchQuery, setSearchQuery] = useState("")
+
+  const filteredChats = chats.filter((chat) => chat.title.toLowerCase().includes(searchQuery.toLowerCase()))
+
+  const handleLogout = () => {
+    // TODO: Integrate with Better Auth logout
+    console.log("Logout clicked - integrate with Better Auth")
+  }
+
+  return (
+    <Sidebar className="border-r border-sidebar-border">
+      <SidebarHeader className="border-b border-sidebar-border p-4">
+        <div className="flex items-center justify-between gap-2 mb-4">
+          <div className="flex items-center gap-2">
+            <div className="flex size-8 items-center justify-center rounded-lg bg-primary">
+              <Sparkles className="size-4 text-primary-foreground" />
+            </div>
+            <span className="text-lg font-semibold text-sidebar-foreground">AI Assistant</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <ModeToggle />
+            <SidebarTrigger />
+          </div>
+        </div>
+        <Button onClick={onNewChat} className="w-full justify-start gap-2" size="lg">
+          <MessageSquarePlus className="size-4" />
+          New Chat
+        </Button>
+      </SidebarHeader>
+
+      <SidebarContent className="flex flex-col p-2 min-h-0">
+        <div className="px-2 py-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search chats..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 bg-sidebar-accent/50"
+            />
+          </div>
+        </div>
+
+        <Separator className="my-2" />
+
+        <ScrollArea className="flex-1 min-h-0">
+          <div className="space-y-1 p-2">
+            {filteredChats.length === 0 ? (
+              <div className="py-8 text-center text-sm text-muted-foreground">
+                {searchQuery ? "No chats found" : "No chats yet"}
+              </div>
+            ) : (
+              filteredChats.map((chat) => (
+                <button
+                  key={chat.id}
+                  onClick={() => onSelectChat(chat.id)}
+                  className={cn(
+                    "group relative flex w-full flex-col gap-1 rounded-lg p-3 text-left transition-colors",
+                    "hover:bg-sidebar-accent",
+                    currentChatId === chat.id && "bg-sidebar-accent",
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="truncate font-medium text-sm text-sidebar-foreground">{chat.title}</p>
+                      {chat.lastMessage && (
+                        <p className="truncate text-xs text-muted-foreground mt-1">{chat.lastMessage}</p>
+                      )}
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                        >
+                          <MoreVertical className="size-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onDeleteChat(chat.id)
+                          }}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="mr-2 size-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>{chat.timestamp}</span>
+                    {chat.documentCount > 0 && (
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-primary">
+                        {chat.documentCount} {chat.documentCount === 1 ? "doc" : "docs"}
+                      </span>
+                    )}
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+        </ScrollArea>
+      </SidebarContent>
+
+      <SidebarFooter className="border-t border-sidebar-border p-4">
+        <div className="flex items-center gap-3 rounded-lg bg-sidebar-accent p-3 mb-2">
+          <div className="flex size-9 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">
+            U
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-sidebar-foreground truncate">User Name</p>
+            <p className="text-xs text-muted-foreground truncate">user@example.com</p>
+          </div>
+        </div>
+        <Button variant="outline" className="w-full justify-start gap-2 bg-transparent" onClick={handleLogout}>
+          <LogOut className="size-4" />
+          Logout
+        </Button>
+      </SidebarFooter>
+    </Sidebar>
+  )
+}

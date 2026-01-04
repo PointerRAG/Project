@@ -1,6 +1,8 @@
 "use client"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { useEffect } from "react"
+import { useActionState } from "react"
 import {
   Card,
   CardContent,
@@ -15,15 +17,22 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { signin} from "@/server/users"
-import { signIn } from "@/lib/auth-client"
+import { signin, SignInState } from "@/server/users"
+import { socialSignIn } from "@/lib/auth-client"
 
-
-
+const initialState : SignInState = {
+     success : false
+}
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+
+const [state,formAction,isPending] = useActionState(
+  signin,
+  initialState
+)
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
@@ -60,11 +69,11 @@ export function LoginForm({
               </Field>
               <Field>
                 <Button type="submit">Login</Button>
-                <Button variant="outline" type="submit" onClick={signIn}>
+                <Button variant="outline" type="submit" onClick={socialSignIn}>
                   Login with Google
                 </Button>
                 <FieldDescription className="text-center">
-                  Don&apos;t have an account? <a href="#">Sign up</a>
+                  Don&apos;t have an account? <a href="signup">Sign up</a>
                 </FieldDescription>
               </Field>
             </FieldGroup>
