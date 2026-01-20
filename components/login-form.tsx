@@ -20,18 +20,25 @@ import { Input } from "@/components/ui/input"
 import { signin, SignInState } from "@/server/users"
 import { socialSignIn } from "@/lib/auth-client"
 
-const initialState : SignInState = {
-     success : false
+const initialState: SignInState = {
+  success: false
 }
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
 
-const [state,formAction,isPending] = useActionState(
-  signin,
-  initialState
-)
+  const [state, formAction, isPending] = useActionState(
+    signin,
+    initialState
+  )
+
+  useEffect(() => {
+    if (state.success) {
+      // Redirect will be handled by server-side action
+      // This effect can be used for additional client-side actions if needed
+    }
+  }, [state])
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -43,7 +50,7 @@ const [state,formAction,isPending] = useActionState(
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={signin}>
+          <form action={formAction}>
             <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
@@ -52,7 +59,7 @@ const [state,formAction,isPending] = useActionState(
                   name="email"
                   type="email"
                   placeholder="m@example.com"
-                  
+
                 />
               </Field>
               <Field>
@@ -65,13 +72,18 @@ const [state,formAction,isPending] = useActionState(
                     Forgot your password?
                   </a>
                 </div>
-                <Input id="password" name="password" type="password"  />
+                <Input id="password" name="password" type="password" />
               </Field>
               <Field>
-                <Button type="submit">Login</Button>
+                <Button type="submit" disabled={isPending}>
+                  {isPending ? "Logging in..." : "Login"}
+                </Button>
                 <Button variant="outline" type="submit" onClick={socialSignIn}>
                   Login with Google
                 </Button>
+                {state.message && (
+                  <p className="text-sm text-destructive text-center mt-2">{state.message}</p>
+                )}
                 <FieldDescription className="text-center">
                   Don&apos;t have an account? <a href="signup">Sign up</a>
                 </FieldDescription>
