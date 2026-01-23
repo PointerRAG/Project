@@ -158,7 +158,7 @@ export function ChatArea({ currentChat }: ChatAreaProps) {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-background">
+    <div className="flex-1 flex flex-col h-full bg-background">
       {/* Header */}
       <div className="border-b border-border px-6 py-4 bg-card">
         <div className="flex items-center justify-between">

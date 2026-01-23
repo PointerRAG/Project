@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarTrigger } from "@/components/ui/sidebar"
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import type { Chat } from "./chat-interface"
@@ -38,21 +38,21 @@ export function ChatSidebar({ chats, currentChatId, onSelectChat, onNewChat, onD
             <div className="flex size-8 items-center justify-center rounded-lg bg-primary">
               <Sparkles className="size-4 text-primary-foreground" />
             </div>
-            <span className="text-lg font-semibold text-sidebar-foreground">AI Assistant</span>
+            <span className="text-lg font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">AI Assistant</span>
           </div>
           <div className="flex items-center gap-1">
             <ModeToggle />
             <SidebarTrigger />
           </div>
         </div>
-        <Button onClick={onNewChat} className="w-full justify-start gap-2" size="lg">
+        <Button onClick={onNewChat} className="w-full justify-start gap-2 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0" size="lg">
           <MessageSquarePlus className="size-4" />
-          New Chat
+          <span className="group-data-[collapsible=icon]:hidden">New Chat</span>
         </Button>
       </SidebarHeader>
 
       <SidebarContent className="flex flex-col p-2 min-h-0">
-        <div className="px-2 py-2">
+        <div className="px-2 py-2 group-data-[collapsible=icon]:hidden">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -64,12 +64,12 @@ export function ChatSidebar({ chats, currentChatId, onSelectChat, onNewChat, onD
           </div>
         </div>
 
-        <Separator className="my-2" />
+        <Separator className="my-2 group-data-[collapsible=icon]:hidden" />
 
         <ScrollArea className="flex-1 min-h-0">
           <div className="space-y-1 p-2">
             {filteredChats.length === 0 ? (
-              <div className="py-8 text-center text-sm text-muted-foreground">
+              <div className="py-8 text-center text-sm text-muted-foreground group-data-[collapsible=icon]:hidden">
                 {searchQuery ? "No chats found" : "No chats yet"}
               </div>
             ) : (
@@ -81,21 +81,29 @@ export function ChatSidebar({ chats, currentChatId, onSelectChat, onNewChat, onD
                     "group relative flex w-full flex-col gap-1 rounded-lg p-3 text-left transition-colors",
                     "hover:bg-sidebar-accent",
                     currentChatId === chat.id && "bg-sidebar-accent",
+                    "group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:items-center"
                   )}
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2 w-full group-data-[collapsible=icon]:justify-center">
+                    <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
                       <p className="truncate font-medium text-sm text-sidebar-foreground">{chat.title}</p>
                       {chat.lastMessage && (
                         <p className="truncate text-xs text-muted-foreground mt-1">{chat.lastMessage}</p>
                       )}
                     </div>
+                    {/* Icon for collapsed state representing the chat */}
+                    <div className="hidden group-data-[collapsible=icon]:block">
+                      <div className="flex size-6 items-center justify-center rounded-md bg-primary/10 text-primary text-xs font-medium">
+                        {chat.title.charAt(0).toUpperCase()}
+                      </div>
+                    </div>
+
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 group-data-[collapsible=icon]:hidden"
                         >
                           <MoreVertical className="size-4" />
                         </Button>
@@ -114,7 +122,7 @@ export function ChatSidebar({ chats, currentChatId, onSelectChat, onNewChat, onD
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
                     <span>{chat.timestamp}</span>
                     {chat.documentCount > 0 && (
                       <span className="rounded-full bg-primary/10 px-2 py-0.5 text-primary">
@@ -129,20 +137,26 @@ export function ChatSidebar({ chats, currentChatId, onSelectChat, onNewChat, onD
         </ScrollArea>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border p-4">
-        <div className="flex items-center gap-3 rounded-lg bg-sidebar-accent p-3 mb-2">
-          <div className="flex size-9 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">
-            U
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-sidebar-foreground truncate">User Name</p>
-            <p className="text-xs text-muted-foreground truncate">user@example.com</p>
-          </div>
-        </div>
-        <Button variant="outline" className="w-full justify-start gap-2 bg-transparent" onClick={handleLogout}>
-          <LogOut className="size-4" />
-          Logout
-        </Button>
+      <SidebarFooter className="border-t border-sidebar-border p-2">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-semibold">
+                U
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
+                <span className="truncate font-semibold">User Name</span>
+                <span className="truncate text-xs">user@example.com</span>
+              </div>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={handleLogout}>
+              <LogOut className="size-4" />
+              <span>Logout</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   )

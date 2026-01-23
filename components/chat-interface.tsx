@@ -4,6 +4,7 @@ import { useState } from "react"
 import { ChatSidebar } from "./chat-sidebar"
 import { ChatArea } from "./chat-area"
 import { SidebarProvider } from "@/components/ui/sidebar"
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable"
 
 // Mock chat data structure
 export interface Chat {
@@ -66,16 +67,21 @@ export function ChatInterface() {
 
   return (
     <SidebarProvider defaultOpen>
-      <div className="flex h-screen w-full overflow-hidden bg-background">
-        <ChatSidebar
-          chats={chats}
-          currentChatId={currentChatId}
-          onSelectChat={setCurrentChatId}
-          onNewChat={handleNewChat}
-          onDeleteChat={handleDeleteChat}
-        />
-        <ChatArea currentChat={currentChat} />
-      </div>
+      <ResizablePanelGroup direction="horizontal" className="h-full w-full overflow-hidden bg-background">
+        <ResizablePanel defaultSize={20} minSize={15} maxSize={40} className="hidden md:block">
+          <ChatSidebar
+            chats={chats}
+            currentChatId={currentChatId}
+            onSelectChat={setCurrentChatId}
+            onNewChat={handleNewChat}
+            onDeleteChat={handleDeleteChat}
+          />
+        </ResizablePanel>
+        <ResizableHandle withHandle className="hidden md:flex" />
+        <ResizablePanel defaultSize={80}>
+          <ChatArea currentChat={currentChat} />
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </SidebarProvider>
   )
 }

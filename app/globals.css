@@ -121,6 +121,12 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Prevent body scroll if app handles it */
+  }
   body {
     @apply bg-background text-foreground;
   }
