@@ -44,4 +44,5 @@ next-env.d.ts
 __pycache__
 venv
 *.bin
+*.sqllite3
 chroma_db/
