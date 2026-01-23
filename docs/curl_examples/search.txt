@@ -1,0 +1,9 @@
+# Search documents
+# Replace 'chat_id' and 'query' with your values
+curl -X POST "http://localhost:8000/api/v1/vector/search" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "chat_id": "1",
+    "query": "paris olympics",
+    "top_k": 5
+  }'

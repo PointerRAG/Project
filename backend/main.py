@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.core.config import settings
 from backend.core.database import init_resources, cleanup_resources, resource_manager
 from backend.api.v1.vector_routes import router as vector_router
+from backend.api.v1.ingestion_routes import router as ingestion_router
 
 # Configure logging
 logging.basicConfig(
@@ -69,6 +70,10 @@ app.add_middleware(
 # Include API routers
 app.include_router(
     vector_router,
+    prefix=settings.API_V1_PREFIX
+)
+app.include_router(
+    ingestion_router,
     prefix=settings.API_V1_PREFIX
 )
 

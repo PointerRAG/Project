@@ -1,0 +1,5 @@
+# Ingest a document
+# Replace 'chat_id' and '@filepath' with your values
+curl -X POST "http://localhost:8000/api/v1/ingest" \
+  -F "chat_id=1" \
+  -F "file=@sample.pdf"

@@ -99,10 +99,11 @@ export function ChatArea({ currentChat }: ChatAreaProps) {
     }
   }
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
-    if (!files) return
+    if (!files || files.length === 0) return
 
+    // Show optimistic UI updates immediately
     const newDocuments: UploadedDocument[] = Array.from(files).map((file) => ({
       id: Date.now().toString() + file.name,
       name: file.name,
@@ -111,8 +112,29 @@ export function ChatArea({ currentChat }: ChatAreaProps) {
 
     setDocuments([...documents, ...newDocuments])
 
-    // TODO: Upload files to your backend/storage for RAG processing
-    console.log("Files to upload:", newDocuments)
+    // Upload to backend
+    for (const file of Array.from(files)) {
+      const formData = new FormData()
+      formData.append("file", file)
+      formData.append("chat_id", currentChat?.id || "default-chat")
+
+      try {
+        const response = await fetch("http://localhost:8000/api/v1/ingest", {
+          method: "POST",
+          body: formData,
+        })
+
+        if (!response.ok) {
+          throw new Error(`Upload failed: ${response.statusText}`)
+        }
+
+        const data = await response.json()
+        console.log("File uploaded successfully:", data)
+      } catch (error) {
+        console.error("Error uploading file:", error)
+        // Optionally handle error state here (e.g., mark document as failed)
+      }
+    }
   }
 
   const handleRemoveDocument = (docId: string) => {

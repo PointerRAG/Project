@@ -5,3 +5,6 @@ sentence-transformers
 pydantic
 pydantic-settings
 python-dotenv
+pymupdf
+langchain-text-splitters
+python-multipart

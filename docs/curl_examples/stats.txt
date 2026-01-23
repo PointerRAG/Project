@@ -1,0 +1,3 @@
+# Get Collection Stats
+# Replace 'chat_id' with your target chat UUID (e.g., '1')
+curl "http://localhost:8000/api/v1/vector/stats/1"
