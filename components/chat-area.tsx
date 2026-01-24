@@ -9,18 +9,14 @@ import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
-import type { Chat } from "./chat-interface"
+// Import Message from chat-interface to match
+import type { Chat, Message } from "./chat-interface"
 import { useSidebar } from "@/components/ui/sidebar"
 
 interface ChatAreaProps {
   currentChat: Chat | undefined
-}
-
-interface Message {
-  id: string
-  role: "user" | "assistant"
-  content: string
-  timestamp: string
+  messages: Message[]
+  onSendMessage: (content: string) => void
 }
 
 interface UploadedDocument {
@@ -29,33 +25,8 @@ interface UploadedDocument {
   size: string
 }
 
-// Mock messages
-const mockMessages: Message[] = [
-  {
-    id: "1",
-    role: "assistant",
-    content:
-      "Hello! I'm your AI assistant. Upload documents to get started with retrieval-augmented generation, or ask me anything!",
-    timestamp: "10:30 AM",
-  },
-  {
-    id: "2",
-    role: "user",
-    content: "Can you help me understand the key points from my documents?",
-    timestamp: "10:32 AM",
-  },
-  {
-    id: "3",
-    role: "assistant",
-    content:
-      'Of course! Please upload your documents using the "Upload Documents" button above, and I\'ll analyze them to provide you with key insights and answer any questions you have.',
-    timestamp: "10:32 AM",
-  },
-]
-
-export function ChatArea({ currentChat }: ChatAreaProps) {
+export function ChatArea({ currentChat, messages, onSendMessage }: ChatAreaProps) {
   const { state, toggleSidebar } = useSidebar()
-  const [messages, setMessages] = useState<Message[]>(mockMessages)
   const [input, setInput] = useState("")
   const [documents, setDocuments] = useState<UploadedDocument[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -68,28 +39,8 @@ export function ChatArea({ currentChat }: ChatAreaProps) {
 
   const handleSend = () => {
     if (!input.trim()) return
-
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content: input,
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-    }
-
-    setMessages([...messages, newMessage])
+    onSendMessage(input)
     setInput("")
-
-    // Mock AI response
-    setTimeout(() => {
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content:
-          "This is a demo response. In a real implementation, this would be connected to your AI backend with RAG capabilities using the uploaded documents.",
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      }
-      setMessages((prev) => [...prev, aiResponse])
-    }, 1000)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -213,37 +164,49 @@ export function ChatArea({ currentChat }: ChatAreaProps) {
 
       {/* Messages */}
       <ScrollArea className="flex-1 min-h-0 px-4 md:px-6 py-6">
-        <div className="max-w-3xl mx-auto space-y-6">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={cn("flex gap-3", message.role === "user" ? "justify-end" : "justify-start")}
-            >
-              {message.role === "assistant" && (
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary">
-                  <span className="text-primary-foreground text-sm font-semibold">AI</span>
-                </div>
-              )}
-              <div
-                className={cn("flex flex-col gap-1 max-w-[80%]", message.role === "user" ? "items-end" : "items-start")}
-              >
-                <Card
-                  className={cn(
-                    "px-4 py-3 shadow-sm",
-                    message.role === "user" ? "bg-primary text-primary-foreground border-primary" : "bg-card",
-                  )}
-                >
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
-                </Card>
-                <span className="text-xs text-muted-foreground px-1">{message.timestamp}</span>
+        <div className="max-w-3xl mx-auto space-y-6 h-full">
+          {messages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center p-8 opacity-50 select-none">
+              <div className="flex size-20 items-center justify-center rounded-3xl bg-primary/10 mb-6">
+                <FileUp className="size-10 text-primary" />
               </div>
-              {message.role === "user" && (
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-accent">
-                  <span className="text-accent-foreground text-sm font-semibold">U</span>
-                </div>
-              )}
+              <h3 className="text-xl font-semibold mb-2">Ready to assist</h3>
+              <p className="max-w-sm text-sm text-balance">
+                Upload your documents to get started with RAG-powered analysis, or simply start typing to chat.
+              </p>
             </div>
-          ))}
+          ) : (
+            messages.map((message) => (
+              <div
+                key={message.id}
+                className={cn("flex gap-3", message.role === "user" ? "justify-end" : "justify-start")}
+              >
+                {message.role === "assistant" && (
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary">
+                    <span className="text-primary-foreground text-sm font-semibold">AI</span>
+                  </div>
+                )}
+                <div
+                  className={cn("flex flex-col gap-1 max-w-[80%]", message.role === "user" ? "items-end" : "items-start")}
+                >
+                  <Card
+                    className={cn(
+                      "px-4 py-3 shadow-sm",
+                      message.role === "user" ? "bg-primary text-primary-foreground border-primary" : "bg-card",
+                    )}
+                  >
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                  </Card>
+                  <span className="text-xs text-muted-foreground px-1">{message.timestamp}</span>
+                </div>
+                {message.role === "user" && (
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-accent">
+                    <span className="text-accent-foreground text-sm font-semibold">U</span>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
         </div>
         <div ref={messagesEndRef} />
       </ScrollArea>
