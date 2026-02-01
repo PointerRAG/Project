@@ -8,3 +8,5 @@ python-dotenv
 pymupdf
 langchain-text-splitters
 python-multipart
+sqlalchemy
+psycopg2-binary

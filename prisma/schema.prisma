@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Chat {
+  id            String    @id @default(uuid())
+  title         String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  userId        String    @default("guest") // Placeholder for better-auth integration
+  messages      Message[]
+  documentCount Int       @default(0)
+
+  @@index([userId])
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  role      String   // "user" or "assistant"
+  content   String
+  createdAt DateTime @default(now())
+  chatId    String
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@index([chatId])
+}

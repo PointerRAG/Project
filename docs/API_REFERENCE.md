@@ -8,7 +8,51 @@ All API requests were made to:
 
 ---
 
-## 1. Document Ingestion
+## 1. Chat Management (NEW)
+
+### Create Chat
+**Endpoint**: `POST /chat/`
+
+Creates a new persistent chat session.
+
+**Payload**:
+```json
+{
+  "title": "My New Chat"
+}
+```
+
+### List Chats
+**Endpoint**: `GET /chat/`
+
+Returns all chat sessions sorted by recent activity.
+
+### Get Chat Details
+**Endpoint**: `GET /chat/{chat_id}`
+
+Returns the full conversation history for a chat.
+
+### Send Message
+**Endpoint**: `POST /chat/{chat_id}/message`
+
+Sends a user message and triggers a RAG-based AI response.
+
+**Payload**:
+```json
+{
+  "role": "user",
+  "content": "What does this document say?"
+}
+```
+
+### Delete Chat
+**Endpoint**: `DELETE /chat/{chat_id}`
+
+Deletes the chat history and its associated vector embeddings.
+
+---
+
+## 2. Document Ingestion
 **Endpoint**: `POST /ingest`
 
 Uploads a file (PDF, TXT, MD) to be parsed, chunked, and stored in the vector database.
@@ -29,7 +73,7 @@ curl -X POST "http://localhost:8000/api/v1/ingest" \
 
 ---
 
-## 2. Vector Search
+## 3. Vector Search
 **Endpoint**: `POST /vector/search`
 
 Retrieves the most relevant document chunks for a given query.
@@ -55,7 +99,7 @@ curl -X POST "http://localhost:8000/api/v1/vector/search" \
 
 ---
 
-## 3. Collection Statistics
+## 4. Collection Statistics
 **Endpoint**: `GET /vector/stats/{chat_id}`
 
 Returns standard statistics about a chat's document collection.
@@ -73,7 +117,7 @@ curl "http://localhost:8000/api/v1/vector/stats/1"
 
 ---
 
-## 4. Health Check
+## 5. Health Check
 **Endpoint**: `/health`
 
 Verifies the status of the backend services (ChromaDB, Embedding Model).

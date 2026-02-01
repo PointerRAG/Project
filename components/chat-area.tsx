@@ -70,7 +70,7 @@ export function ChatArea({ currentChat, messages, onSendMessage }: ChatAreaProps
       formData.append("chat_id", currentChat?.id || "default-chat")
 
       try {
-        const response = await fetch("http://localhost:8000/api/v1/ingest", {
+        const response = await fetch("http://127.0.0.1:8000/api/v1/ingest", {
           method: "POST",
           body: formData,
         })

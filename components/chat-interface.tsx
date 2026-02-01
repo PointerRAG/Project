@@ -1,162 +1,200 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ChatSidebar } from "./chat-sidebar"
 import { ChatArea } from "./chat-area"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable"
 
-// Mock chat data structure
+// Constants
+const API_BASE = "http://127.0.0.1:8000/api/v1"
+
+// Types matching Backend Pydantic Schemas
 export interface Message {
   id: string
   role: "user" | "assistant"
   content: string
-  timestamp: string
+  timestamp: string // Display string or ISO date from backend
 }
 
 export interface Chat {
   id: string
   title: string
-  lastMessage: string
-  timestamp: string
+  lastMessage: string | null
+  timestamp: string // Display string or ISO date
   documentCount: number
   messages: Message[]
 }
 
-// this mocks the backend messages history
-const mockChats: Chat[] = [
-  {
-    id: "1",
-    title: "Product Requirements Document",
-    lastMessage: "Can you summarize the key features?",
-    timestamp: "2 hours ago",
-    documentCount: 3,
-    messages: [
-      {
-        id: "1",
-        role: "assistant",
-        content: "Hello! I'm your AI assistant. I can help you with your Product Requirements Document.",
-        timestamp: "10:30 AM",
-      },
-      {
-        id: "2",
-        role: "user",
-        content: "Can you summarize the key features?",
-        timestamp: "10:32 AM",
-      },
-    ]
-  },
-  {
-    id: "2",
-    title: "Financial Analysis Q1 2024",
-    lastMessage: "What are the revenue trends?",
-    timestamp: "1 day ago",
-    documentCount: 5,
-    messages: [
-      {
-        id: "1",
-        role: "assistant",
-        content: "Hello! I've analyzed the Q1 2024 financial data.",
-        timestamp: "09:00 AM",
-      },
-      {
-        id: "2",
-        role: "user",
-        content: "What are the revenue trends?",
-        timestamp: "09:05 AM",
-      },
-    ]
-  },
-  {
-    id: "3",
-    title: "Customer Research Insights",
-    lastMessage: "Show me the top pain points",
-    timestamp: "3 days ago",
-    documentCount: 2,
-    messages: [
-      {
-        id: "1",
-        role: "user",
-        content: "Show me the top pain points",
-        timestamp: "3 days ago",
-      },
-      {
-        id: "2",
-        role: "assistant",
-        content: "Based on the research, the top pain points are...",
-        timestamp: "3 days ago",
-      }
-    ]
-  },
-]
-
 export function ChatInterface() {
-  const [currentChatId, setCurrentChatId] = useState<string | null>(mockChats[0]?.id || null)
-  const [chats, setChats] = useState<Chat[]>(mockChats)
+  const [currentChatId, setCurrentChatId] = useState<string | null>(null)
+  const [chats, setChats] = useState<Chat[]>([])
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handleNewChat = () => {
-    const newChat: Chat = {
-      id: Date.now().toString(),
-      title: "New Chat",
-      lastMessage: "",
-      timestamp: "Just now",
-      documentCount: 0,
-      messages: []
+  // Fetch all chats on mount
+  useEffect(() => {
+    fetchChats()
+  }, [])
+
+  // Fetch chats list
+  const fetchChats = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/chat/`)
+      if (res.ok) {
+        const data = await res.json()
+        // Map backend summary to frontend Chat object
+        const mappedChats = data.map((c: any) => ({
+          id: c.id,
+          title: c.title,
+          lastMessage: c.lastMessage,
+          timestamp: new Date(c.updatedAt).toLocaleDateString(), // Format date
+          documentCount: c.documentCount,
+          messages: [] // Summary doesn't have messages
+        }))
+        setChats(mappedChats)
+        // If no chat selected and chats exist, select first
+        if (!currentChatId && mappedChats.length > 0) {
+          fetchChatDetails(mappedChats[0].id)
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch chats:", error)
     }
-    setChats([newChat, ...chats])
-    setCurrentChatId(newChat.id)
   }
 
-  const handleDeleteChat = (chatId: string) => {
-    setChats(chats.filter((chat) => chat.id !== chatId))
-    if (currentChatId === chatId) {
-      setCurrentChatId(chats[0]?.id || null)
+  // Fetch specific chat details (messages)
+  const fetchChatDetails = async (chatId: string) => {
+    try {
+      setIsLoading(true)
+      setCurrentChatId(chatId)
+
+      const res = await fetch(`${API_BASE}/chat/${chatId}`)
+      if (res.ok) {
+        const data = await res.json()
+
+        // Update the specific chat in the list with full messages
+        setChats(prev => prev.map(c => {
+          if (c.id === chatId) {
+            return {
+              ...c,
+              messages: data.messages.map((m: any) => ({
+                id: m.id,
+                role: m.role,
+                content: m.content,
+                timestamp: new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+              })),
+              documentCount: data.documentCount
+            }
+          }
+          return c
+        }))
+      }
+    } catch (error) {
+      console.error("Failed to fetch chat details:", error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  // Future Integration: This function will be replaced/enhanced to call the backend API
+  const handleNewChat = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/chat/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "New Chat" })
+      })
+
+      if (res.ok) {
+        const newChatData = await res.json()
+        const newChat: Chat = {
+          id: newChatData.id,
+          title: newChatData.title,
+          lastMessage: null,
+          timestamp: "Just now",
+          documentCount: 0,
+          messages: []
+        }
+        setChats([newChat, ...chats])
+        setCurrentChatId(newChat.id)
+      }
+    } catch (error) {
+      console.error("Failed to create new chat:", error)
+    }
+  }
+
+  const handleDeleteChat = async (chatId: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/chat/${chatId}`, { method: "DELETE" })
+      if (res.ok) {
+        setChats(chats.filter((chat) => chat.id !== chatId))
+        if (currentChatId === chatId) {
+          setCurrentChatId(null)
+          // Optionally select next available
+          const remaining = chats.filter((chat) => chat.id !== chatId)
+          if (remaining.length > 0) {
+            fetchChatDetails(remaining[0].id)
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Failed to delete chat:", error)
+    }
+  }
+
   const handleSendMessage = async (content: string) => {
     if (!currentChatId) return;
 
-    const newMessage: Message = {
+    // Optimistic User Message
+    const optimisticMsg: Message = {
       id: Date.now().toString(),
       role: "user",
       content,
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     }
 
-    // Update local state immediately (optimistic update)
-    setChats(prevChats => prevChats.map(chat => {
+    setChats(prev => prev.map(chat => {
       if (chat.id === currentChatId) {
         return {
           ...chat,
-          messages: [...chat.messages, newMessage],
-          lastMessage: content, // Update sidebar preview
+          messages: [...chat.messages, optimisticMsg],
+          lastMessage: content,
           timestamp: "Just now"
         }
       }
       return chat;
     }));
 
-    // Simulate AI Response (To be replaced by real API call)
-    setTimeout(() => {
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: "This is a demo response. In the future, this will come from the backend.",
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      }
+    try {
+      const res = await fetch(`${API_BASE}/chat/${currentChatId}/message`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: "user", content })
+      })
 
-      setChats(prevChats => prevChats.map(chat => {
-        if (chat.id === currentChatId) {
-          return {
-            ...chat,
-            messages: [...chat.messages, aiResponse]
-          }
+      if (res.ok) {
+        const aiMsgData = await res.json()
+        const aiMsg: Message = {
+          id: aiMsgData.id,
+          role: aiMsgData.role, // should be 'assistant'
+          content: aiMsgData.content,
+          timestamp: new Date(aiMsgData.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
         }
-        return chat;
-      }));
-    }, 1000);
+
+        // Add assistant response to state
+        setChats(prev => prev.map(chat => {
+          if (chat.id === currentChatId) {
+            return {
+              ...chat,
+              messages: [...chat.messages, aiMsg]
+            }
+          }
+          return chat;
+        }));
+      }
+    } catch (error) {
+      console.error("Failed to send message:", error)
+      // TODO: Handle error UI (undo optimistic update?)
+    }
   }
 
   const currentChat = chats.find((chat) => chat.id === currentChatId)
@@ -168,7 +206,7 @@ export function ChatInterface() {
           <ChatSidebar
             chats={chats}
             currentChatId={currentChatId}
-            onSelectChat={setCurrentChatId}
+            onSelectChat={fetchChatDetails} // Fetch details on select
             onNewChat={handleNewChat}
             onDeleteChat={handleDeleteChat}
           />

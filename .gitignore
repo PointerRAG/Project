@@ -46,3 +46,4 @@ venv
 *.bin
 *.sqllite3
 chroma_db/
+/lib/generated/prisma
