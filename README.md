@@ -1,15 +1,16 @@
 # PointerRAG
 
-PointerRAG is a Retrieval-Augmented Generation (RAG) system that allows users to chat with their documents. It consists of a modern Next.js frontend and a robust FastAPI backend powered by ChromaDB.
+PointerRAG is a Retrieval-Augmented Generation (RAG) system that allows users to chat with their documents. It consists of a modern Next.js frontend and a robust FastAPI backend powered by ChromaDB AND PostgreSQL.
 
 ## Features
 
 -   **Chat Interface**: Real-time chat with AI assistance.
+-   **Persistent History**: Chat sessions and messages are saved in PostgreSQL.
 -   **Document Ingestion**: Upload PDF, TXT, and Markdown files.
 -   **RAG Pipeline**:
     -   Automatic text chunking and embedding.
     -   Vector search using ChromaDB.
-    -   Context-aware responses (coming soon).
+    -   Context-aware responses.
 -   **Backend API**: Fast and scalable API built with FastAPI.
 
 ## Tech Stack
@@ -21,7 +22,9 @@ PointerRAG is a Retrieval-Augmented Generation (RAG) system that allows users to
 
 ### Backend
 -   **Framework**: [FastAPI](https://fastapi.tiangolo.com/)
--   **Vector Database**: [ChromaDB](https://www.trychroma.com/) (Persistent Storage)
+-   **Primary Database**: **PostgreSQL** (Chat History)
+-   **Vector Database**: [ChromaDB](https://www.trychroma.com/) (Document Embeddings)
+-   **ORM/Database**: SQLAlchemy (Python) & Prisma (Schema Management)
 -   **Embeddings**: `all-MiniLM-L6-v2` (via Sentence Transformers)
 -   **PDF Processing**: PyMuPDF (fitz)
 
@@ -32,44 +35,73 @@ PointerRAG is a Retrieval-Augmented Generation (RAG) system that allows users to
 ### Prerequisites
 -   Node.js 18+
 -   Python 3.10+
+-   **PostgreSQL** (Running locally or hosted)
 
-### 1. Backend Setup
+### 1. Environment Configuration
 
-Navigate to the `backend` directory and install dependencies:
+Create a `.env` file in the root directory and ensure the **DATABASE_URL** is set:
+
+```properties
+DATABASE_URL=postgresql://user:password@localhost:5432/your_database
+```
+
+### 2. Backend Setup
+
+Navigate to the project root and install dependencies:
 
 ```bash
-cd backend
-python -m venv venv
-# Windows
-.\venv\Scripts\activate
-# Linux/Mac
-# source venv/bin/activate
+# Activate your virtual environment first
+pip install -r backend/requirements.txt
+```
 
-pip install -r requirements.txt
+**Initialize the Database:**
+Run the initialization script to create the necessary tables (`Chat`, `Message`) in Postgres:
+
+```bash
+python scripts/init_db.py
 ```
 
 Start the backend server:
 
 ```bash
-# Must be run from the project root or backend directory
-# If running from project root:
-python -m uvicorn backend.main:app --port 8000 --reload
+uvicorn backend.main:app --reload
 ```
-The API will be available at `http://localhost:8000`.
--   **Swagger UI**: `http://localhost:8000/docs`
+The API will be available at `http://127.0.0.1:8000`.
+
+-   **Swagger UI**: `http://127.0.0.1:8000/docs`
 -   **API Reference**: See `docs/API_REFERENCE.md`
 
-### 2. Frontend Setup
+### 3. Frontend Setup
 
 Install dependencies and start the development server:
 
 ```bash
-# In the project root
 npm install
 npm run dev
 ```
 
 Open `http://localhost:3000` in your browser.
+
+---
+
+## Database Management Scripts
+
+The project includes utility scripts in the `scripts/` folder to help manage the database:
+
+-   **Initialize Database**: Creates tables if they don't exist.
+    ```bash
+    python scripts/init_db.py
+    ```
+
+-   **Reset Database**: **WARNING** - Drops all `Chat` and `Message` tables and recreates them. Use this to clear all history.
+    ```bash
+    python scripts/reset_db.py
+    ```
+
+-   **Test API**: Runs a quick verification to ensure the Backend API is working and creating chats correctly.
+    ```bash
+    python scripts/test_chat_api.py
+    ```
 
 ---
 
@@ -86,12 +118,14 @@ Comprehensive API documentation and usage examples are available in the `docs/` 
 pointerRAG/
 ├── app/                  # Next.js App Router pages
 ├── backend/              # Python FastAPI Backend
-│   ├── api/              # API Routes (v1)
-│   ├── core/             # Configuration & Database
-│   ├── schemas/          # Pydantic Models
-│   ├── services/         # Business Logic (Vector, Ingestion)
+│   ├── api/              # API Routes (Ingestion, Chat, Vector)
+│   ├── core/             # Configuration & Database Models
+│   ├── schemas/          # Pydantic Schemas
+│   ├── services/         # Business Logic
 │   └── main.py           # Entry point
 ├── components/           # React Components
 ├── docs/                 # Documentation & Examples
+├── prisma/               # Database Schema (Reference)
+├── scripts/              # DB Management Utilities
 └── public/               # Static Assets
 ```
