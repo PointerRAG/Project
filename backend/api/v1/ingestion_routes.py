@@ -7,6 +7,10 @@ from typing import Optional
 
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends, Header
 
+from datetime import datetime
+from sqlalchemy.orm import Session
+from ...core.sql_database import get_db
+from ...core.models import Chat as ChatModel
 from ...schemas.ingestion import IngestResponse, IngestError
 from ...services.ingestion_service import (
     get_ingestion_service,
@@ -68,6 +72,7 @@ async def ingest_document(
     chat_id: str = Form(..., description="UUID of the chat session"),
     file: UploadFile = File(..., description="Document file to ingest"),
     service: IngestionService = Depends(get_service),
+    db: Session = Depends(get_db), # Inject DB session
 ) -> IngestResponse:
     """
     Ingest a document into a chat-specific collection.
@@ -79,6 +84,7 @@ async def ingest_document(
     1. Parsed to extract text
     2. Split into overlapping chunks
     3. Embedded and stored in ChromaDB
+    4. Chat document count updated in SQL
     """
     filename = file.filename or "unknown"
     
@@ -97,6 +103,15 @@ async def ingest_document(
     # Verify user access (stubbed for now)
     await verify_user_access(chat_id)
     
+    # Verify Chat Exists in SQL
+    chat = db.query(ChatModel).filter(ChatModel.id == chat_id).first()
+    if not chat and chat_id != "default-chat":
+         # Optional: decide if we strictly require chat to exist. 
+         # For now, yes, to keep counts in sync.
+         logger.warning(f"Ingestion requested for non-existent chat: {chat_id}")
+         # We could raise 404, but to be robust with 'default-chat' logic, maybe we verify valid UUIDs.
+         # For now, let's proceed but only update if chat exists.
+
     try:
         # Read file content with size check
         file_bytes = await file.read()
@@ -134,6 +149,14 @@ async def ingest_document(
             f"Successfully ingested {filename}: "
             f"{result.chunks_created} chunks from {result.pages_processed} pages"
         )
+        
+        # Update Document Count in SQL
+        if chat:
+            chat.documentCount += 1
+            chat.updatedAt = datetime.utcnow()
+            db.add(chat)
+            db.commit()
+            db.refresh(chat)
         
         return result
         
