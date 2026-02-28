@@ -2,6 +2,7 @@ import logging
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from datetime import datetime
 from sqlalchemy import desc
 
 from backend.core.sql_database import get_db
@@ -80,18 +81,18 @@ def send_message(chat_id: str, message: MessageCreate, db: Session = Depends(get
     
     # 2. Get Context (RAG)
     try:
-        vector_service = get_vector_service()
-        # Search for relevant documents
-        search_results = vector_service.search_documents(chat_id, message.content, top_k=3)
-        context_str = "\n\n".join([doc.text for doc in search_results.results])
-        
-        # 3. Generate AI Response
-        # STUB: For now, just echoing or using a simple template. 
-        # In a real app, call OpenAI/Gemini/Ollama here.
-        ai_content = f"I found {len(search_results.results)} relevant documents.\n\nHere is what I found:\n{context_str}"
-        
-        if not context_str:
-            ai_content = "I couldn't find any relevant documents to answer your question."
+            vector_service = get_vector_service()
+            # Search for relevant documents
+            search_results = vector_service.search_documents(chat_id, message.content, top_k=3)
+            context_str = "\n\n".join([doc.text for doc in search_results.results])
+            
+            # 3. Generate AI Response
+            # STUB: For now, just echoing or using a simple template. 
+            # In a real app, call OpenAI/Gemini/Ollama here.
+            ai_content = f"I found {len(search_results.results)} relevant documents.\n\nHere is what I found:\n{context_str}"
+            
+            if not context_str:
+                ai_content = "I couldn't find any relevant documents to answer your question."
 
     except Exception as e:
         logger.error(f"RAG error: {e}")

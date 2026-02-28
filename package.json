@@ -68,6 +68,7 @@
     "@prisma/config": "^7.2.0",
     "@tailwindcss/postcss": "^4.1.9",
     "@types/node": "^22",
+    "@types/pg": "^8.16.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "dotenv": "^17.2.3",

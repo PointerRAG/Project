@@ -38,7 +38,7 @@ export function ChatSidebar({ chats, currentChatId, onSelectChat, onNewChat, onD
             <div className="flex size-8 items-center justify-center rounded-lg bg-primary">
               <Sparkles className="size-4 text-primary-foreground" />
             </div>
-            <span className="text-lg font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">AI Assistant</span>
+            <span className="text-lg font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">Pointer RAG</span>
           </div>
           <div className="flex items-center gap-1">
             <ModeToggle />

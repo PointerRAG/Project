@@ -1,0 +1,1 @@
+PointerRAG is a high-performance RAG system using FastAPI and Next.js. It supports PDF and Text ingestion.
