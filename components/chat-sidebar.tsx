@@ -11,6 +11,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { cn } from "@/lib/utils"
 import type { Chat } from "./chat-interface"
 import { ModeToggle } from "@/components/mode-toggle"
+import { authClient } from "@/lib/auth-client"
+import { useRouter } from "next/navigation"
 
 interface ChatSidebarProps {
   chats: Chat[]
@@ -24,11 +26,22 @@ export function ChatSidebar({ chats, currentChatId, onSelectChat, onNewChat, onD
   const [searchQuery, setSearchQuery] = useState("")
 
   const filteredChats = chats.filter((chat) => chat.title.toLowerCase().includes(searchQuery.toLowerCase()))
-
-  const handleLogout = () => {
-    // TODO: Integrate with Better Auth logout
-    console.log("Logout clicked - integrate with Better Auth")
+  const router = useRouter();
+  const handleLogout = async () => {
+    try {
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            router.push("/login");
+          },
+        },
+      });
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   }
+
+
 
   return (
     <Sidebar className="border-r border-sidebar-border">
@@ -87,9 +100,6 @@ export function ChatSidebar({ chats, currentChatId, onSelectChat, onNewChat, onD
                   <div className="flex items-start justify-between gap-2 w-full group-data-[collapsible=icon]:justify-center">
                     <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
                       <p className="truncate font-medium text-sm text-sidebar-foreground">{chat.title}</p>
-                      {chat.lastMessage && (
-                        <p className="truncate text-xs text-muted-foreground mt-1">{chat.lastMessage}</p>
-                      )}
                     </div>
                     {/* Icon for collapsed state representing the chat */}
                     <div className="hidden group-data-[collapsible=icon]:block">

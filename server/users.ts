@@ -28,7 +28,7 @@ export async function signin(
         })
 
         console.log("Signin result:", result);
-        redirect("/dashboard");
+        redirect("/chat");
     }
     catch (error: any) {
         // redirect() throws a NEXT_REDIRECT error - we need to re-throw it
@@ -61,5 +61,5 @@ export async function signup(formdata: FormData) {
 
         },
     })
-    redirect("/dashboard");
+    redirect("/chat");
 }

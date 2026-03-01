@@ -17,6 +17,7 @@ interface ChatAreaProps {
   currentChat: Chat | undefined
   messages: Message[]
   onSendMessage: (content: string) => void
+  onDocumentUploaded?: (chatId: string) => void
 }
 
 interface UploadedDocument {
@@ -25,7 +26,7 @@ interface UploadedDocument {
   size: string
 }
 
-export function ChatArea({ currentChat, messages, onSendMessage }: ChatAreaProps) {
+export function ChatArea({ currentChat, messages, onSendMessage, onDocumentUploaded }: ChatAreaProps) {
   const { state, toggleSidebar } = useSidebar()
   const [input, setInput] = useState("")
   const [documents, setDocuments] = useState<UploadedDocument[]>([])
@@ -81,6 +82,11 @@ export function ChatArea({ currentChat, messages, onSendMessage }: ChatAreaProps
 
         const data = await response.json()
         console.log("File uploaded successfully:", data)
+
+        // Notify parent to increment the persistent document count
+        if (currentChat?.id && onDocumentUploaded) {
+          onDocumentUploaded(currentChat.id)
+        }
       } catch (error) {
         console.error("Error uploading file:", error)
         // Optionally handle error state here (e.g., mark document as failed)
@@ -94,7 +100,7 @@ export function ChatArea({ currentChat, messages, onSendMessage }: ChatAreaProps
 
   if (!currentChat) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-background">
+      <div className="flex-1 flex items-center justify-center bg-background h-full">
         <div className="text-center max-w-md px-4">
           <div className="flex size-16 items-center justify-center rounded-2xl bg-primary/10 mx-auto mb-4">
             <FileUp className="size-8 text-primary" />
@@ -122,9 +128,9 @@ export function ChatArea({ currentChat, messages, onSendMessage }: ChatAreaProps
             <div>
               <h1 className="text-xl font-semibold text-card-foreground">{currentChat.title}</h1>
               <p className="text-sm text-muted-foreground mt-0.5">
-                {documents.length === 0
+                {currentChat.documentCount === 0
                   ? "No documents uploaded"
-                  : `${documents.length} ${documents.length === 1 ? "document" : "documents"} uploaded`}
+                  : `${currentChat.documentCount} ${currentChat.documentCount === 1 ? "document" : "documents"} uploaded`}
               </p>
             </div>
           </div>

@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react"
 import { ChatSidebar } from "./chat-sidebar"
 import { ChatArea } from "./chat-area"
-import { SidebarProvider } from "@/components/ui/sidebar"
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable"
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 
 // Constants
 const API_BASE = "http://127.0.0.1:8000/api/v1"
+// Toggle this value to manually experiment with the sidebar width
+const SIDEBAR_WIDTH = "300px"
 
 // Types matching Backend Pydantic Schemas
 export interface Message {
@@ -197,12 +198,26 @@ export function ChatInterface() {
     }
   }
 
+  const handleDocumentUploaded = (chatId: string) => {
+    setChats(prev => prev.map(chat => {
+      if (chat.id === chatId) {
+        return { ...chat, documentCount: chat.documentCount + 1 }
+      }
+      return chat
+    }))
+  }
+
   const currentChat = chats.find((chat) => chat.id === currentChatId)
 
   return (
-    <SidebarProvider defaultOpen>
-      <ResizablePanelGroup direction="horizontal" className="h-full w-full overflow-hidden bg-background">
-        <ResizablePanel defaultSize={20} minSize={15} maxSize={40} className="hidden md:block">
+    <SidebarProvider
+      defaultOpen
+      style={{
+        "--sidebar-width": SIDEBAR_WIDTH,
+      } as React.CSSProperties}
+    >
+      <div className="flex h-full w-full overflow-hidden bg-background">
+        <div className="w-[var(--sidebar-width)] shrink-0 h-full relative">
           <ChatSidebar
             chats={chats}
             currentChatId={currentChatId}
@@ -210,16 +225,16 @@ export function ChatInterface() {
             onNewChat={handleNewChat}
             onDeleteChat={handleDeleteChat}
           />
-        </ResizablePanel>
-        <ResizableHandle withHandle className="hidden md:flex" />
-        <ResizablePanel defaultSize={80}>
+        </div>
+        <SidebarInset className="flex-1 overflow-hidden min-w-0">
           <ChatArea
             currentChat={currentChat}
             messages={currentChat?.messages || []}
             onSendMessage={handleSendMessage}
+            onDocumentUploaded={handleDocumentUploaded}
           />
-        </ResizablePanel>
-      </ResizablePanelGroup>
+        </SidebarInset>
+      </div>
     </SidebarProvider>
   )
 }
