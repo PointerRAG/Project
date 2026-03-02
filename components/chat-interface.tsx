@@ -97,12 +97,12 @@ export function ChatInterface() {
     }
   }
 
-  const handleNewChat = async () => {
+  const handleNewChat = async (title: string = "New Chat") => {
     try {
       const res = await fetch(`${API_BASE}/chat/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: "New Chat" })
+        body: JSON.stringify({ title })
       })
 
       if (res.ok) {

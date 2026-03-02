@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import type { Chat } from "./chat-interface"
@@ -18,12 +20,14 @@ interface ChatSidebarProps {
   chats: Chat[]
   currentChatId: string | null
   onSelectChat: (chatId: string) => void
-  onNewChat: () => void
+  onNewChat: (title: string) => void
   onDeleteChat: (chatId: string) => void
 }
 
 export function ChatSidebar({ chats, currentChatId, onSelectChat, onNewChat, onDeleteChat }: ChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("")
+  const [isNewChatDialogOpen, setIsNewChatDialogOpen] = useState(false)
+  const [newChatTitle, setNewChatTitle] = useState("")
 
   const filteredChats = chats.filter((chat) => chat.title.toLowerCase().includes(searchQuery.toLowerCase()))
   const router = useRouter();
@@ -41,7 +45,15 @@ export function ChatSidebar({ chats, currentChatId, onSelectChat, onNewChat, onD
     }
   }
 
-
+  const handleCreateChat = () => {
+    if (newChatTitle.trim()) {
+      onNewChat(newChatTitle.trim())
+    } else {
+      onNewChat("New Chat")
+    }
+    setIsNewChatDialogOpen(false)
+    setNewChatTitle("")
+  }
 
   return (
     <Sidebar className="border-r border-sidebar-border">
@@ -58,10 +70,43 @@ export function ChatSidebar({ chats, currentChatId, onSelectChat, onNewChat, onD
             <SidebarTrigger />
           </div>
         </div>
-        <Button onClick={onNewChat} className="w-full justify-start gap-2 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0" size="lg">
-          <MessageSquarePlus className="size-4" />
-          <span className="group-data-[collapsible=icon]:hidden">New Chat</span>
-        </Button>
+
+        <Dialog open={isNewChatDialogOpen} onOpenChange={setIsNewChatDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="w-full justify-start gap-2 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0" size="lg">
+              <MessageSquarePlus className="size-4" />
+              <span className="group-data-[collapsible=icon]:hidden">New Chat</span>
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create New Chat</DialogTitle>
+              <DialogDescription>
+                Provide a name for your new conversation.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <Label htmlFor="title" className="mb-2 block text-sm font-medium">Chat Title</Label>
+              <Input
+                id="title"
+                placeholder="Enter chat title..."
+                value={newChatTitle}
+                onChange={(e) => setNewChatTitle(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleCreateChat();
+                  }
+                }}
+                autoFocus
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsNewChatDialogOpen(false)}>Cancel</Button>
+              <Button onClick={handleCreateChat}>Create Chat</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </SidebarHeader>
 
       <SidebarContent className="flex flex-col p-2 min-h-0">
