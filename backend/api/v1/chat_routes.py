@@ -9,6 +9,7 @@ from backend.core.sql_database import get_db
 from backend.core.models import Chat as ChatModel, Message as MessageModel
 from backend.schemas.chat import Chat, ChatCreate, MessageCreate, Message, ChatSummary
 from backend.services.vector_service import get_vector_service
+from backend.services.generation_service import get_generation_service
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 logger = logging.getLogger(__name__)
@@ -87,11 +88,10 @@ def send_message(chat_id: str, message: MessageCreate, db: Session = Depends(get
             context_str = "\n\n".join([doc.text for doc in search_results.results])
             
             # 3. Generate AI Response
-            # STUB: For now, just echoing or using a simple template. 
-            # In a real app, call OpenAI/Gemini/Ollama here.
-            ai_content = f"I found {len(search_results.results)} relevant documents.\n\nHere is what I found:\n{context_str}"
-            
-            if not context_str:
+            if context_str:
+                generation_service = get_generation_service()
+                ai_content = generation_service.generate_answer(message.content, context_str)
+            else:
                 ai_content = "I couldn't find any relevant documents to answer your question."
 
     except Exception as e:

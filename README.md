@@ -39,10 +39,17 @@ PointerRAG is a Retrieval-Augmented Generation (RAG) system that allows users to
 
 ### 1. Environment Configuration
 
-Create a `.env` file in the root directory and ensure the **DATABASE_URL** is set:
+Copy the provided `.env.example` to create a `.env` file in the root directory and ensure the **DATABASE_URL** is set:
 
 ```properties
-DATABASE_URL=postgresql://user:password@localhost:5432/your_database
+DATABASE_URL=postgresql://admin:password@localhost:5432/pointerrag
+```
+
+**Run Local Database via Docker (Recommended):**
+If you don't have PostgreSQL installed locally, you can easily spin up a containerized database using the provided `docker-compose.yml`:
+
+```bash
+docker-compose up -d
 ```
 
 ### 2. Backend Setup

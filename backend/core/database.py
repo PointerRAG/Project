@@ -10,6 +10,7 @@ import chromadb
 from sentence_transformers import SentenceTransformer
 
 from .config import settings
+from backend.services.generation_service import get_generation_service
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +61,10 @@ class ResourceManager:
         # Generate a dummy embedding to fully warm up the model
         logger.info("Warming up embedding model with dummy text...")
         _ = self._embedding_model.encode("Warmup text for model initialization")
+        
+        # Initialize Generation Model
+        logger.info("Initializing Pointer-Generator model...")
+        get_generation_service() # Forces lazy-loading config + model
         
         self._initialized = True
         logger.info("All resources initialized successfully!")
