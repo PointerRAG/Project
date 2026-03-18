@@ -154,7 +154,7 @@ export function ChatArea({ currentChat, messages, onSendMessage, onDocumentUploa
             {documents.map((doc) => (
               <div key={doc.id} className="flex items-center gap-2 rounded-lg bg-accent px-3 py-1.5 text-sm group">
                 <File className="size-4 text-muted-foreground" />
-                <span className="text-accent-foreground max-w-[200px] truncate">{doc.name}</span>
+                <span className="text-accent-foreground max-w-50 truncate">{doc.name}</span>
                 <span className="text-muted-foreground text-xs">({doc.size})</span>
                 <button
                   onClick={() => handleRemoveDocument(doc.id)}
@@ -172,7 +172,7 @@ export function ChatArea({ currentChat, messages, onSendMessage, onDocumentUploa
       <ScrollArea className="flex-1 min-h-0 px-4 md:px-6 py-6">
         <div className="max-w-3xl mx-auto space-y-6 h-full">
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center p-8 opacity-50 select-none">
+            <div className="flex flex-col items-center justify-center h-full min-h-100 text-center p-8 opacity-50 select-none">
               <div className="flex size-20 items-center justify-center rounded-3xl bg-primary/10 mb-6">
                 <FileUp className="size-10 text-primary" />
               </div>
@@ -228,7 +228,7 @@ export function ChatArea({ currentChat, messages, onSendMessage, onDocumentUploa
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Type your message... (Shift+Enter for new line)"
-                className="min-h-[56px] max-h-[200px] resize-none pr-12 bg-background"
+                className="min-h-14 max-h-50 resize-none pr-12 bg-background"
                 rows={1}
               />
               <Button
@@ -240,7 +240,7 @@ export function ChatArea({ currentChat, messages, onSendMessage, onDocumentUploa
                 <Paperclip className="size-4" />
               </Button>
             </div>
-            <Button onClick={handleSend} size="icon" className="size-[56px] shrink-0" disabled={!input.trim()}>
+            <Button onClick={handleSend} size="icon" className="size-14 shrink-0" disabled={!input.trim()}>
               <Send className="size-5" />
             </Button>
           </div>
