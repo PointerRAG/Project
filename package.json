@@ -66,19 +66,20 @@
   },
   "devDependencies": {
     "@better-auth/cli": "^1.4.21",
-    "@prisma/client": "^7.4.2",
+    "@prisma/client": "^6.4.1",
     "@prisma/config": "^7.2.0",
     "@tailwindcss/postcss": "^4.1.9",
-    "@types/node": "^22",
+    "@types/node": "^22.19.15",
     "@types/pg": "^8.16.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "dotenv": "^17.2.3",
     "postcss": "^8.5",
-    "prisma": "^6.19.2",
+    "prisma": "^7.5.0",
     "tailwindcss": "^4.1.9",
+    "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "tw-animate-css": "1.3.3",
-    "typescript": "^5"
+    "typescript": "^5.9.3"
   }
 }
