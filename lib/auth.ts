@@ -3,7 +3,7 @@ import { createAuthMiddleware, APIError } from "better-auth/api";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { prisma } from "./prisma";
-import { signupSchema, loginSchema } from "@/lib/validation/auth";
+import { serverSignupSchema, loginSchema } from "@/lib/validation/auth";
 
 export const auth = betterAuth({
   trustedOrigins: [
@@ -27,7 +27,7 @@ export const auth = betterAuth({
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
       if (ctx.path === "/sign-up/email") {
-        const parsed = signupSchema.safeParse(ctx.body);
+        const parsed = serverSignupSchema.safeParse(ctx.body);
         if (!parsed.success) {
           throw new APIError("BAD_REQUEST", {
             message: parsed.error.issues[0].message,

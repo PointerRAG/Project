@@ -28,10 +28,17 @@ export const loginSchema = z.object({
   password: passwordSchema,
 });
 
-export const signupSchema = z.object({
+export const serverSignupSchema = z.object({
   name: nameSchema,
   email: emailSchema,
   password: passwordSchema,
+});
+
+export const signupSchema = serverSignupSchema.extend({
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;
@@ -42,17 +49,17 @@ export type AuthMode = "login" | "signup";
 
 export const authAllowedFieldsByMode: Record<AuthMode, AuthField[]> = {
   login: ["email", "password"],
-  signup: ["name", "email", "password"],
+  signup: ["name", "email", "password", "confirmPassword"],
 };
 
 export const authDefaultFieldsByMode: Record<AuthMode, AuthField[]> = {
   login: ["email", "password"],
-  signup: ["name", "email", "password"],
+  signup: ["name", "email", "password", "confirmPassword"],
 };
 
 export const authRequiredFieldsByMode: Record<AuthMode, AuthField[]> = {
   login: ["email", "password"],
-  signup: ["name", "email", "password"],
+  signup: ["name", "email", "password", "confirmPassword"],
 };
 
 export function parseLoginFormData(formData: FormData) {

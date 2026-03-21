@@ -4,6 +4,7 @@ import { useMemo, useTransition, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { socialSignIn, authClient } from "@/lib/auth-client";
 import {
@@ -13,7 +14,6 @@ import {
   loginSchema,
   signupSchema,
   type AuthField,
-  type AuthFieldErrors,
   type AuthMode,
   type LoginInput,
   type SignupInput,
@@ -32,16 +32,9 @@ import {
   FieldError,
   FieldGroup,
   FieldLabel,
+  FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-
-type AuthActionState = {
-  success: boolean;
-  message?: string;
-  fieldErrors?: AuthFieldErrors;
-};
-
-const initialState: AuthActionState = { success: false };
 
 type AuthFormProps = React.ComponentProps<"div"> & {
   mode: AuthMode;
@@ -64,6 +57,7 @@ function LoginAuthForm({ fields, className, ...props }: InternalFormProps) {
   const router = useRouter();
   const [isTransitionPending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const effectiveFields = useMemo(() => {
     const configured = fields?.length ? fields : authDefaultFieldsByMode.login;
@@ -107,15 +101,32 @@ function LoginAuthForm({ fields, className, ...props }: InternalFormProps) {
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
-        <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
-          <CardDescription>
-            Enter your email below to login to your account
-          </CardDescription>
+        <CardHeader className="text-center">
+          <CardTitle className="text-xl">Welcome back</CardTitle>
+          <CardDescription>Login with your Google account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
             <FieldGroup>
+              <Field>
+                <Button variant="outline" type="button" onClick={socialSignIn}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    className="mr-2 h-4 w-4"
+                  >
+                    <path
+                      d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                  Login with Google
+                </Button>
+              </Field>
+              <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
+                Or continue with
+              </FieldSeparator>
+
               {effectiveFields.includes("email") && (
                 <Controller
                   name="email"
@@ -127,7 +138,7 @@ function LoginAuthForm({ fields, className, ...props }: InternalFormProps) {
                         {...field}
                         id={field.name}
                         type="email"
-                        placeholder="m@example.com"
+                        placeholder="john@example.com"
                         aria-invalid={fieldState.invalid}
                       />
                       {fieldState.invalid && (
@@ -148,17 +159,37 @@ function LoginAuthForm({ fields, className, ...props }: InternalFormProps) {
                         <FieldLabel htmlFor={field.name}>Password</FieldLabel>
                         <a
                           href="#"
-                          className="ml-auto text-sm underline-offset-4 hover:underline gap-2"
+                          className="ml-auto text-sm underline-offset-4 hover:underline"
                         >
                           Forgot your password?
                         </a>
                       </div>
-                      <Input
-                        {...field}
-                        id={field.name}
-                        type="password"
-                        aria-invalid={fieldState.invalid}
-                      />
+                      <div className="relative">
+                        <Input
+                          {...field}
+                          id={field.name}
+                          type={showPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          aria-invalid={fieldState.invalid}
+                          className="pr-10"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-muted-foreground" />
+                          )}
+                          <span className="sr-only">
+                            Toggle password visibility
+                          </span>
+                        </Button>
+                      </div>
                       {fieldState.invalid && (
                         <FieldError errors={[fieldState.error]} />
                       )}
@@ -171,10 +202,9 @@ function LoginAuthForm({ fields, className, ...props }: InternalFormProps) {
                 <Button type="submit" disabled={pending}>
                   {pending ? "Logging in..." : "Login"}
                 </Button>
-                <Button variant="outline" type="button" onClick={socialSignIn}>
-                  Login with Google
-                </Button>
-                <FieldError className="text-center">{serverError}</FieldError>
+                {serverError && (
+                  <FieldError className="text-center">{serverError}</FieldError>
+                )}
                 <FieldDescription className="text-center">
                   Don&apos;t have an account? <a href="/signup">Sign up</a>
                 </FieldDescription>
@@ -183,6 +213,10 @@ function LoginAuthForm({ fields, className, ...props }: InternalFormProps) {
           </form>
         </CardContent>
       </Card>
+      <FieldDescription className="px-6 text-center">
+        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
+        and <a href="#">Privacy Policy</a>.
+      </FieldDescription>
     </div>
   );
 }
@@ -191,6 +225,7 @@ function SignupAuthForm({ fields, className, ...props }: InternalFormProps) {
   const router = useRouter();
   const [isTransitionPending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const effectiveFields = useMemo(() => {
     const configured = fields?.length ? fields : authDefaultFieldsByMode.signup;
@@ -209,6 +244,7 @@ function SignupAuthForm({ fields, className, ...props }: InternalFormProps) {
       name: "",
       email: "",
       password: "",
+      confirmPassword: "",
     },
     mode: "onSubmit",
     reValidateMode: "onChange",
@@ -236,15 +272,32 @@ function SignupAuthForm({ fields, className, ...props }: InternalFormProps) {
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
-        <CardHeader>
-          <CardTitle>Create a New Account</CardTitle>
-          <CardDescription>
-            Enter the details to create a new account
-          </CardDescription>
+        <CardHeader className="text-center">
+          <CardTitle className="text-xl">Create an account</CardTitle>
+          <CardDescription>Sign up with your Google account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
             <FieldGroup>
+              <Field>
+                <Button variant="outline" type="button" onClick={socialSignIn}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    className="mr-2 h-4 w-4"
+                  >
+                    <path
+                      d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                  Sign up with Google
+                </Button>
+              </Field>
+              <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
+                Or continue with
+              </FieldSeparator>
+
               {effectiveFields.includes("name") && (
                 <Controller
                   name="name"
@@ -256,6 +309,7 @@ function SignupAuthForm({ fields, className, ...props }: InternalFormProps) {
                         {...field}
                         id={field.name}
                         type="text"
+                        placeholder="John Doe"
                         aria-invalid={fieldState.invalid}
                       />
                       {fieldState.invalid && (
@@ -277,7 +331,7 @@ function SignupAuthForm({ fields, className, ...props }: InternalFormProps) {
                         {...field}
                         id={field.name}
                         type="email"
-                        placeholder="m@example.com"
+                        placeholder="john@example.com"
                         aria-invalid={fieldState.invalid}
                       />
                       {fieldState.invalid && (
@@ -296,17 +350,57 @@ function SignupAuthForm({ fields, className, ...props }: InternalFormProps) {
                     <Field data-invalid={fieldState.invalid}>
                       <div className="flex items-center">
                         <FieldLabel htmlFor={field.name}>Password</FieldLabel>
-                        <a
-                          href="#"
-                          className="ml-auto text-sm underline-offset-4 hover:underline gap-2"
+                      </div>
+                      <div className="relative">
+                        <Input
+                          {...field}
+                          id={field.name}
+                          type={showPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                          aria-invalid={fieldState.invalid}
+                          className="pr-10"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={() => setShowPassword(!showPassword)}
                         >
-                          Forgot your password?
-                        </a>
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-muted-foreground" />
+                          )}
+                          <span className="sr-only">
+                            Toggle password visibility
+                          </span>
+                        </Button>
+                      </div>
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+              )}
+
+              {effectiveFields.includes("confirmPassword") && (
+                <Controller
+                  name="confirmPassword"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <div className="flex items-center">
+                        <FieldLabel htmlFor={field.name}>
+                          Confirm Password
+                        </FieldLabel>
                       </div>
                       <Input
                         {...field}
                         id={field.name}
                         type="password"
+                        placeholder="••••••••"
                         aria-invalid={fieldState.invalid}
                       />
                       {fieldState.invalid && (
@@ -321,18 +415,21 @@ function SignupAuthForm({ fields, className, ...props }: InternalFormProps) {
                 <Button type="submit" disabled={pending}>
                   {pending ? "Creating account..." : "Sign up"}
                 </Button>
-                <Button variant="outline" type="button" onClick={socialSignIn}>
-                  Sign up with Google
-                </Button>
-                <FieldError className="text-center">{serverError}</FieldError>
+                {serverError && (
+                  <FieldError className="text-center">{serverError}</FieldError>
+                )}
                 <FieldDescription className="text-center">
-                  Already have an account? <a href="/login">Sign in</a>
+                  Already have an account? <a href="/login">Log in</a>
                 </FieldDescription>
               </Field>
             </FieldGroup>
           </form>
         </CardContent>
       </Card>
+      <FieldDescription className="px-6 text-center">
+        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
+        and <a href="#">Privacy Policy</a>.
+      </FieldDescription>
     </div>
   );
 }
