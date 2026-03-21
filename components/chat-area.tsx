@@ -27,15 +27,14 @@ import {
 } from "@/components/chat/chat-toolbar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-// Import Message from chat-interface to match
-import type { Chat as ChatModel, Message } from "./chat-interface";
+// Import shared types
+import type { Chat as ChatModel, Message } from "@/lib/types";
 import { authClient } from "@/lib/auth-client";
+import { sendMessageAction, uploadDocumentAction } from "@/lib/actions/chat";
 
 interface ChatAreaProps {
   currentChat: ChatModel | undefined;
   messages: Message[];
-  onSendMessage: (content: string) => void;
-  onDocumentUploaded?: (chatId: string) => void;
 }
 
 interface UploadedDocument {
@@ -44,17 +43,25 @@ interface UploadedDocument {
   size: string;
 }
 
+import { useRouter } from "next/navigation";
+
 export function ChatArea({
   currentChat,
   messages,
-  onSendMessage,
-  onDocumentUploaded,
 }: ChatAreaProps) {
   const [input, setInput] = useState("");
+  const [localMessages, setLocalMessages] = useState<Message[]>(messages);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [documents, setDocuments] = useState<UploadedDocument[]>([]);
   const { data: session } = authClient.useSession();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+
+  // Reset internal state when navigating between chats
+  useEffect(() => {
+    setLocalMessages(messages);
+  }, [messages, currentChat?.id]);
 
   const userName = session?.user?.name?.trim() || "User";
   const userImage = session?.user?.image || undefined;
@@ -76,9 +83,39 @@ export function ChatArea({
     container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
+  const handleSendMessage = async (content: string) => {
+    if (!currentChat) return;
+
+    const optimisticMsg: Message = {
+      id: Date.now().toString(),
+      role: "user",
+      content,
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    };
+
+    setLocalMessages((prev) => [...prev, optimisticMsg]);
+    setIsGenerating(true);
+
+    try {
+      const result = await sendMessageAction(currentChat.id, content);
+
+      if (result.success && result.message) {
+        setLocalMessages((prev) => [...prev, result.message as Message]);
+      }
+    } catch (error) {
+      console.error("Failed to send message:", error);
+    } finally {
+      setIsGenerating(false);
+      // Removed router.refresh() because the Server Action handles revalidation natively!
+    }
+  };
+
   const handleSend = () => {
     if (!input.trim()) return;
-    onSendMessage(input);
+    handleSendMessage(input);
     setInput("");
   };
 
@@ -102,27 +139,11 @@ export function ChatArea({
       formData.append("chat_id", currentChat?.id || "default-chat");
 
       try {
-        const response = await fetch("/api/ingest", {
-          method: "POST",
-          body: formData,
-        });
+        const result = await uploadDocumentAction(formData);
+        console.log("File uploaded successfully:", result);
 
-        if (!response.ok) {
-          try {
-             const errorData = await response.json();
-             throw new Error(`Upload failed: ${errorData.error || errorData.details || response.statusText}`);
-          } catch(e) {
-             throw new Error(`Upload failed: ${response.statusText}`);
-          }
-        }
-
-        const data = await response.json();
-        console.log("File uploaded successfully:", data);
-
-        // Notify parent to increment the persistent document count
-        if (currentChat?.id && onDocumentUploaded) {
-          onDocumentUploaded(currentChat.id);
-        }
+        // Trigger navigation refresh to update document count in layout
+        router.refresh();
       } catch (error) {
         console.error("Error uploading file:", error);
         // Optionally handle error state here (e.g., mark document as failed)
@@ -234,7 +255,7 @@ export function ChatArea({
           </div>
         ) : (
           <div className="mx-auto flex w-full max-w-3xl flex-col gap-0.5 py-2">
-            {messages.map((message, index, allMessages) => {
+            {localMessages.map((message, index, allMessages) => {
               const nextMessage = allMessages[index + 1];
               const ts = parseTimestamp(message.timestamp);
               const nextTs = nextMessage
@@ -334,6 +355,30 @@ export function ChatArea({
                 </React.Fragment>
               );
             })}
+
+            {isGenerating && (
+              <ChatEvent className="group rounded-md px-2 py-1.5 hover:bg-accent/40 mt-2">
+                <ChatEventAddon className="pt-0.5">
+                  <Avatar className="rounded-sm" size="default">
+                    <AvatarFallback className="rounded-sm text-sm font-semibold bg-primary text-primary-foreground">
+                      AI
+                    </AvatarFallback>
+                  </Avatar>
+                </ChatEventAddon>
+                <ChatEventBody className="items-start max-w-[80%]">
+                  <ChatEventTitle className="mb-1 text-xs text-muted-foreground">
+                    <span className="font-medium">AI</span>
+                  </ChatEventTitle>
+                  <ChatEventContent className="rounded-lg border px-5 py-4 text-sm leading-relaxed shadow-sm bg-card">
+                    <div className="flex space-x-1 items-center h-4">
+                      <div className="w-1.5 h-1.5 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "-0.3s" }}></div>
+                      <div className="w-1.5 h-1.5 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "-0.15s" }}></div>
+                      <div className="w-1.5 h-1.5 bg-foreground/40 rounded-full animate-bounce"></div>
+                    </div>
+                  </ChatEventContent>
+                </ChatEventBody>
+              </ChatEvent>
+            )}
           </div>
         )}
       </ChatMessages>

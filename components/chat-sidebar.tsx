@@ -45,36 +45,33 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import type { Chat } from "./chat-interface";
+import type { Chat } from "@/lib/types";
 import { ModeToggle } from "@/components/mode-toggle";
 import { authClient } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
+import { createChatAction, deleteChatAction } from "@/lib/actions/chat";
 
 interface ChatSidebarProps {
   chats: Chat[];
-  currentChatId: string | null;
-  onSelectChat: (chatId: string) => void;
-  onNewChat: (title: string) => void;
-  onDeleteChat: (chatId: string) => void;
 }
 
 export function ChatSidebar({
   chats,
-  currentChatId,
-  onSelectChat,
-  onNewChat,
-  onDeleteChat,
 }: ChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isNewChatDialogOpen, setIsNewChatDialogOpen] = useState(false);
   const [newChatTitle, setNewChatTitle] = useState("");
+  
+  const router = useRouter();
+  const params = useParams();
+  const currentChatId = params?.chatId as string | undefined;
+
   const { data: session, isPending: isSessionPending } =
     authClient.useSession();
 
   const filteredChats = chats.filter((chat) =>
     chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
-  const router = useRouter();
   const handleLogout = async () => {
     try {
       await authClient.signOut({
@@ -89,14 +86,32 @@ export function ChatSidebar({
     }
   };
 
-  const handleCreateChat = () => {
-    if (newChatTitle.trim()) {
-      onNewChat(newChatTitle.trim());
-    } else {
-      onNewChat("New Chat");
-    }
+  const handleCreateChat = async () => {
+    const title = newChatTitle.trim() || "New Chat";
     setIsNewChatDialogOpen(false);
     setNewChatTitle("");
+
+    try {
+      const result = await createChatAction(title);
+      if (result.success) {
+         router.push(`/chat/${result.id}`);
+         // router.refresh() is handled natively by revalidatePath in the action!
+      }
+    } catch (error) {
+      console.error("Failed to create new chat:", error);
+    }
+  };
+
+  const handleDeleteChat = async (chatId: string) => {
+    try {
+      await deleteChatAction(chatId);
+      if (currentChatId === chatId) {
+        router.push("/chat");
+      }
+      // router.refresh() is handled natively by revalidatePath in the action!
+    } catch (error) {
+      console.error("Failed to delete chat:", error);
+    }
   };
 
   const userName = session?.user?.name?.trim() || "User";
@@ -205,7 +220,7 @@ export function ChatSidebar({
                   <SidebarMenuItem key={chat.id}>
                     <SidebarMenuButton
                       isActive={currentChatId === chat.id}
-                      onClick={() => onSelectChat(chat.id)}
+                      onClick={() => router.push(`/chat/${chat.id}`)}
                       className={cn(
                         "h-auto items-start gap-1.5 p-3",
                         "group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0",
@@ -248,7 +263,7 @@ export function ChatSidebar({
                         <DropdownMenuItem
                           onClick={(e) => {
                             e.stopPropagation();
-                            onDeleteChat(chat.id);
+                            handleDeleteChat(chat.id);
                           }}
                           className="text-destructive focus:text-destructive"
                         >
