@@ -55,13 +55,11 @@ interface ChatSidebarProps {
   chats: Chat[];
 }
 
-export function ChatSidebar({
-  chats,
-}: ChatSidebarProps) {
+export function ChatSidebar({ chats }: ChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isNewChatDialogOpen, setIsNewChatDialogOpen] = useState(false);
   const [newChatTitle, setNewChatTitle] = useState("");
-  
+
   const router = useRouter();
   const params = useParams();
   const currentChatId = params?.chatId as string | undefined;
@@ -94,8 +92,8 @@ export function ChatSidebar({
     try {
       const result = await createChatAction(title);
       if (result.success) {
-         router.push(`/chat/${result.id}`);
-         // router.refresh() is handled natively by revalidatePath in the action!
+        router.push(`/chat/${result.id}`);
+        // router.refresh() is handled natively by revalidatePath in the action!
       }
     } catch (error) {
       console.error("Failed to create new chat:", error);

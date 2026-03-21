@@ -43,11 +43,7 @@ import {
   AvatarImageProps,
   AvatarProps,
 } from "@radix-ui/react-avatar";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useMemo } from "react";
 
 /**

@@ -4,38 +4,41 @@ PointerRAG is a Retrieval-Augmented Generation (RAG) system that allows users to
 
 ## Features
 
--   **Chat Interface**: Real-time chat with AI assistance.
--   **Persistent History**: Chat sessions and messages are saved in PostgreSQL.
--   **Document Ingestion**: Upload PDF, TXT, and Markdown files.
--   **RAG Pipeline**:
-    -   Automatic text chunking and embedding.
-    -   Vector search using ChromaDB.
-    -   Context-aware responses.
--   **Backend API**: Fast and scalable API built with FastAPI.
+- **Chat Interface**: Real-time chat with AI assistance.
+- **Persistent History**: Chat sessions and messages are saved in PostgreSQL.
+- **Document Ingestion**: Upload PDF, TXT, and Markdown files.
+- **RAG Pipeline**:
+  - Automatic text chunking and embedding.
+  - Vector search using ChromaDB.
+  - Context-aware responses.
+- **Backend API**: Fast and scalable API built with FastAPI.
 
 ## Tech Stack
 
 ### Frontend
--   **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
--   **Styling**: Tailwind CSS, Shadcn UI
--   **Icons**: Lucide React
+
+- **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
+- **Styling**: Tailwind CSS, Shadcn UI
+- **Icons**: Lucide React
 
 ### Backend
--   **Framework**: [FastAPI](https://fastapi.tiangolo.com/)
--   **Primary Database**: **PostgreSQL** (Chat History)
--   **Vector Database**: [ChromaDB](https://www.trychroma.com/) (Document Embeddings)
--   **ORM/Database**: SQLAlchemy (Python) & Prisma (Schema Management)
--   **Embeddings**: `all-MiniLM-L6-v2` (via Sentence Transformers)
--   **PDF Processing**: PyMuPDF (fitz)
+
+- **Framework**: [FastAPI](https://fastapi.tiangolo.com/)
+- **Primary Database**: **PostgreSQL** (Chat History)
+- **Vector Database**: [ChromaDB](https://www.trychroma.com/) (Document Embeddings)
+- **ORM/Database**: SQLAlchemy (Python) & Prisma (Schema Management)
+- **Embeddings**: `all-MiniLM-L6-v2` (via Sentence Transformers)
+- **PDF Processing**: PyMuPDF (fitz)
 
 ---
 
 ## Getting Started
 
 ### Prerequisites
--   Node.js 18+
--   Python 3.10+
--   **PostgreSQL** (Running locally or hosted)
+
+- Node.js 18+
+- Python 3.10+
+- **PostgreSQL** (Running locally or hosted)
 
 ### 1. Environment Configuration
 
@@ -73,10 +76,11 @@ Start the backend server:
 ```bash
 uvicorn backend.main:app --reload
 ```
+
 The API will be available at `http://127.0.0.1:8000`.
 
--   **Swagger UI**: `http://127.0.0.1:8000/docs`
--   **API Reference**: See `docs/API_REFERENCE.md`
+- **Swagger UI**: `http://127.0.0.1:8000/docs`
+- **API Reference**: See `docs/API_REFERENCE.md`
 
 ### 3. Frontend Setup
 
@@ -95,20 +99,22 @@ Open `http://localhost:3000` in your browser.
 
 The project includes utility scripts in the `scripts/` folder to help manage the database:
 
--   **Initialize Database**: Creates tables if they don't exist.
-    ```bash
-    python scripts/init_db.py
-    ```
+- **Initialize Database**: Creates tables if they don't exist.
 
--   **Reset Database**: **WARNING** - Drops all `Chat` and `Message` tables and recreates them. Use this to clear all history.
-    ```bash
-    python scripts/reset_db.py
-    ```
+  ```bash
+  python scripts/init_db.py
+  ```
 
--   **Test API**: Runs a quick verification to ensure the Backend API is working and creating chats correctly.
-    ```bash
-    python scripts/test_chat_api.py
-    ```
+- **Reset Database**: **WARNING** - Drops all `Chat` and `Message` tables and recreates them. Use this to clear all history.
+
+  ```bash
+  python scripts/reset_db.py
+  ```
+
+- **Test API**: Runs a quick verification to ensure the Backend API is working and creating chats correctly.
+  ```bash
+  python scripts/test_chat_api.py
+  ```
 
 ---
 
@@ -116,8 +122,8 @@ The project includes utility scripts in the `scripts/` folder to help manage the
 
 Comprehensive API documentation and usage examples are available in the `docs/` folder:
 
--   **[API Reference](docs/API_REFERENCE.md)**: Detailed endpoints guide.
--   **[Curl Examples](docs/curl_examples/)**: Ready-to-use scripts for testing Ingestion, Search, and Stats.
+- **[API Reference](docs/API_REFERENCE.md)**: Detailed endpoints guide.
+- **[Curl Examples](docs/curl_examples/)**: Ready-to-use scripts for testing Ingestion, Search, and Stats.
 
 ## Project Structure
 

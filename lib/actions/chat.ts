@@ -59,7 +59,8 @@ export async function deleteChatAction(chatId: string) {
   return { success: true };
 }
 
-const BACKEND_API_BASE = process.env.BACKEND_API_BASE ?? "http://127.0.0.1:8000/api/v1";
+const BACKEND_API_BASE =
+  process.env.BACKEND_API_BASE ?? "http://127.0.0.1:8000/api/v1";
 
 export async function sendMessageAction(chatId: string, content: string) {
   const session = await auth.api.getSession({

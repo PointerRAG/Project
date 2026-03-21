@@ -45,10 +45,7 @@ interface UploadedDocument {
 
 import { useRouter } from "next/navigation";
 
-export function ChatArea({
-  currentChat,
-  messages,
-}: ChatAreaProps) {
+export function ChatArea({ currentChat, messages }: ChatAreaProps) {
   const [input, setInput] = useState("");
   const [localMessages, setLocalMessages] = useState<Message[]>(messages);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -371,8 +368,14 @@ export function ChatArea({
                   </ChatEventTitle>
                   <ChatEventContent className="rounded-lg border px-5 py-4 text-sm leading-relaxed shadow-sm bg-card">
                     <div className="flex space-x-1 items-center h-4">
-                      <div className="w-1.5 h-1.5 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "-0.3s" }}></div>
-                      <div className="w-1.5 h-1.5 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: "-0.15s" }}></div>
+                      <div
+                        className="w-1.5 h-1.5 bg-foreground/40 rounded-full animate-bounce"
+                        style={{ animationDelay: "-0.3s" }}
+                      ></div>
+                      <div
+                        className="w-1.5 h-1.5 bg-foreground/40 rounded-full animate-bounce"
+                        style={{ animationDelay: "-0.15s" }}
+                      ></div>
                       <div className="w-1.5 h-1.5 bg-foreground/40 rounded-full animate-bounce"></div>
                     </div>
                   </ChatEventContent>
