@@ -39,8 +39,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import type { Chat } from "./chat-interface";
 import { ModeToggle } from "@/components/mode-toggle";
@@ -65,6 +68,8 @@ export function ChatSidebar({
   const [searchQuery, setSearchQuery] = useState("");
   const [isNewChatDialogOpen, setIsNewChatDialogOpen] = useState(false);
   const [newChatTitle, setNewChatTitle] = useState("");
+  const { data: session, isPending: isSessionPending } =
+    authClient.useSession();
 
   const filteredChats = chats.filter((chat) =>
     chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -93,6 +98,15 @@ export function ChatSidebar({
     setIsNewChatDialogOpen(false);
     setNewChatTitle("");
   };
+
+  const userName = session?.user?.name?.trim() || "User";
+  const userEmail = session?.user?.email?.trim() || "No email";
+  const userImage = session?.user?.image || undefined;
+  const nameParts = userName.split(/\s+/).filter(Boolean);
+  const firstInitial = nameParts[0]?.[0] || "U";
+  const lastInitial =
+    nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "";
+  const userInitials = `${firstInitial}${lastInitial}`.toUpperCase();
 
   return (
     <Sidebar collapsible="none" className="border-r border-sidebar-border">
@@ -254,24 +268,46 @@ export function ChatSidebar({
       <SidebarFooter className="border-t border-sidebar-border p-4">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-semibold">
-                U
-              </div>
-              <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-                <span className="truncate font-semibold">User Name</span>
-                <span className="truncate text-xs">user@example.com</span>
-              </div>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={handleLogout}>
-              <LogOut className="size-4" />
-              <span>Logout</span>
-            </SidebarMenuButton>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton
+                  size="lg"
+                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                >
+                  <Avatar className="rounded-sm" size="default">
+                    <AvatarImage src={userImage} alt={userName} />
+                    <AvatarFallback className="rounded-sm bg-primary text-primary-foreground font-semibold">
+                      {userInitials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
+                    <span className="truncate font-semibold">
+                      {isSessionPending ? "Loading..." : userName}
+                    </span>
+                    <span className="truncate text-xs">
+                      {isSessionPending ? "Loading..." : userEmail}
+                    </span>
+                  </div>
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-[--radix-dropdown-menu-trigger-width] min-w-56"
+                align="end"
+                side="top"
+              >
+                <DropdownMenuLabel className="truncate">
+                  {isSessionPending ? "Loading account..." : userName}
+                </DropdownMenuLabel>
+                <DropdownMenuLabel className="-mt-2 truncate text-xs font-normal text-muted-foreground">
+                  {isSessionPending ? "Loading..." : userEmail}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="size-4" />
+                  <span>Logout</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

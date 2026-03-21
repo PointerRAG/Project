@@ -25,9 +25,11 @@ import {
   ChatToolbarButton,
   ChatToolbarTextarea,
 } from "@/components/chat/chat-toolbar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 // Import Message from chat-interface to match
 import type { Chat as ChatModel, Message } from "./chat-interface";
+import { authClient } from "@/lib/auth-client";
 
 interface ChatAreaProps {
   currentChat: ChatModel | undefined;
@@ -50,8 +52,17 @@ export function ChatArea({
 }: ChatAreaProps) {
   const [input, setInput] = useState("");
   const [documents, setDocuments] = useState<UploadedDocument[]>([]);
+  const { data: session } = authClient.useSession();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+  const userName = session?.user?.name?.trim() || "User";
+  const userImage = session?.user?.image || undefined;
+  const nameParts = userName.split(/\s+/).filter(Boolean);
+  const firstInitial = nameParts[0]?.[0] || "U";
+  const lastInitial =
+    nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "";
+  const userInitials = `${firstInitial}${lastInitial}`.toUpperCase();
 
   const parseTimestamp = (timestamp: string): number | null => {
     const ms = Date.parse(timestamp);
@@ -249,16 +260,21 @@ export function ChatArea({
                       {sameRoleAsNext ? (
                         <div className="invisible size-8" />
                       ) : (
-                        <div
-                          className={cn(
-                            "flex size-8 items-center justify-center rounded-lg text-sm font-semibold",
-                            message.role === "assistant"
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-accent text-accent-foreground",
+                        <Avatar className="rounded-sm" size="default">
+                          {message.role === "user" && (
+                            <AvatarImage src={userImage} alt={userName} />
                           )}
-                        >
-                          {message.role === "assistant" ? "AI" : "U"}
-                        </div>
+                          <AvatarFallback
+                            className={cn(
+                              "rounded-sm text-sm font-semibold",
+                              message.role === "assistant"
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-accent text-accent-foreground",
+                            )}
+                          >
+                            {message.role === "assistant" ? "AI" : userInitials}
+                          </AvatarFallback>
+                        </Avatar>
                       )}
                     </ChatEventAddon>
 
