@@ -5,8 +5,6 @@ import { ChatSidebar } from "./chat-sidebar";
 import { ChatArea } from "./chat-area";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 
-// Constants
-const API_BASE = "http://127.0.0.1:8000/api/v1";
 // Toggle this value to manually experiment with the sidebar width
 const SIDEBAR_WIDTH = "300px";
 
@@ -40,7 +38,7 @@ export function ChatInterface() {
   // Fetch chats list
   const fetchChats = async () => {
     try {
-      const res = await fetch(`${API_BASE}/chat/`);
+      const res = await fetch("/api/chat");
       if (res.ok) {
         const data = await res.json();
         // Map backend summary to frontend Chat object
@@ -69,7 +67,7 @@ export function ChatInterface() {
       setIsLoading(true);
       setCurrentChatId(chatId);
 
-      const res = await fetch(`${API_BASE}/chat/${chatId}`);
+      const res = await fetch(`/api/chat/${chatId}`);
       if (res.ok) {
         const data = await res.json();
 
@@ -104,7 +102,7 @@ export function ChatInterface() {
 
   const handleNewChat = async (title: string = "New Chat") => {
     try {
-      const res = await fetch(`${API_BASE}/chat/`, {
+      const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title }),
@@ -130,7 +128,7 @@ export function ChatInterface() {
 
   const handleDeleteChat = async (chatId: string) => {
     try {
-      const res = await fetch(`${API_BASE}/chat/${chatId}`, {
+      const res = await fetch(`/api/chat/${chatId}`, {
         method: "DELETE",
       });
       if (res.ok) {
@@ -178,7 +176,7 @@ export function ChatInterface() {
     );
 
     try {
-      const res = await fetch(`${API_BASE}/chat/${currentChatId}/message`, {
+      const res = await fetch(`/api/chat/${currentChatId}/message`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role: "user", content }),
@@ -237,8 +235,8 @@ export function ChatInterface() {
         } as React.CSSProperties
       }
     >
-      <div className="flex h-full w-full overflow-hidden bg-background">
-        <div className="w-(--sidebar-width) shrink-0 h-full relative">
+      <div className="flex h-dvh min-h-0 w-full overflow-hidden bg-background">
+        <div className="relative h-full w-(--sidebar-width) shrink-0">
           <ChatSidebar
             chats={chats}
             currentChatId={currentChatId}
@@ -247,7 +245,7 @@ export function ChatInterface() {
             onDeleteChat={handleDeleteChat}
           />
         </div>
-        <SidebarInset className="flex-1 overflow-hidden min-w-0">
+        <SidebarInset className="min-h-0 min-w-0 flex-1 overflow-hidden">
           <ChatArea
             currentChat={currentChat}
             messages={currentChat?.messages || []}

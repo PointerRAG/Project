@@ -170,7 +170,7 @@ class GenerationService:
 
     def load_model(self):
         logger.info("Loading Pointer-Generator local model...")
-        checkpoint_path = "D:/pointerRAG/checkpoint-8142"
+        checkpoint_path = "./checkpoint-8142"
 
         self._tokenizer = AutoTokenizer.from_pretrained("t5-base")
         self._model = T5PointerGeneratorNetwork(self._config)
