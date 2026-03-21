@@ -108,7 +108,12 @@ export function ChatArea({
         });
 
         if (!response.ok) {
-          throw new Error(`Upload failed: ${response.statusText}`);
+          try {
+             const errorData = await response.json();
+             throw new Error(`Upload failed: ${errorData.error || errorData.details || response.statusText}`);
+          } catch(e) {
+             throw new Error(`Upload failed: ${response.statusText}`);
+          }
         }
 
         const data = await response.json();

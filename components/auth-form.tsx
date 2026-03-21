@@ -1,11 +1,11 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useTransition } from "react";
+import { useMemo, useTransition, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { cn } from "@/lib/utils";
-import { socialSignIn } from "@/lib/auth-client";
-import { signin, signup } from "@/server/users";
+import { socialSignIn, authClient } from "@/lib/auth-client";
 import {
   authAllowedFieldsByMode,
   authDefaultFieldsByMode,
@@ -61,8 +61,9 @@ export function AuthForm({ mode, fields, className, ...props }: AuthFormProps) {
 }
 
 function LoginAuthForm({ fields, className, ...props }: InternalFormProps) {
+  const router = useRouter();
   const [isTransitionPending, startTransition] = useTransition();
-  const [state, formAction, isPending] = useActionState(signin, initialState);
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const effectiveFields = useMemo(() => {
     const configured = fields?.length ? fields : authDefaultFieldsByMode.login;
@@ -85,37 +86,21 @@ function LoginAuthForm({ fields, className, ...props }: InternalFormProps) {
     reValidateMode: "onChange",
   });
 
-  const pending = isPending || isTransitionPending;
-
-  useEffect(() => {
-    if (!state.fieldErrors) {
-      return;
-    }
-
-    for (const [fieldName, message] of Object.entries(state.fieldErrors)) {
-      if (!message) {
-        continue;
-      }
-
-      if (fieldName === "email" || fieldName === "password") {
-        form.setError(fieldName as keyof LoginInput, {
-          type: "server",
-          message,
-        });
-      }
-    }
-  }, [form, state.fieldErrors]);
+  const pending = isTransitionPending;
 
   const onSubmit = (values: LoginInput) => {
-    const formData = new FormData();
-    for (const field of effectiveFields) {
-      if (field === "email" || field === "password") {
-        formData.set(field, values[field]);
-      }
-    }
+    startTransition(async () => {
+      setServerError(null);
+      const { data, error } = await authClient.signIn.email({
+        email: values.email,
+        password: values.password,
+      });
 
-    startTransition(() => {
-      formAction(formData);
+      if (error) {
+        setServerError(error.message || "Invalid credentials");
+      } else {
+        router.push("/chat");
+      }
     });
   };
 
@@ -189,7 +174,7 @@ function LoginAuthForm({ fields, className, ...props }: InternalFormProps) {
                 <Button variant="outline" type="button" onClick={socialSignIn}>
                   Login with Google
                 </Button>
-                <FieldError className="text-center">{state.message}</FieldError>
+                <FieldError className="text-center">{serverError}</FieldError>
                 <FieldDescription className="text-center">
                   Don&apos;t have an account? <a href="/signup">Sign up</a>
                 </FieldDescription>
@@ -203,8 +188,9 @@ function LoginAuthForm({ fields, className, ...props }: InternalFormProps) {
 }
 
 function SignupAuthForm({ fields, className, ...props }: InternalFormProps) {
+  const router = useRouter();
   const [isTransitionPending, startTransition] = useTransition();
-  const [state, formAction, isPending] = useActionState(signup, initialState);
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const effectiveFields = useMemo(() => {
     const configured = fields?.length ? fields : authDefaultFieldsByMode.signup;
@@ -228,39 +214,22 @@ function SignupAuthForm({ fields, className, ...props }: InternalFormProps) {
     reValidateMode: "onChange",
   });
 
-  const pending = isPending || isTransitionPending;
-
-  useEffect(() => {
-    if (!state.fieldErrors) {
-      return;
-    }
-
-    for (const [fieldName, message] of Object.entries(state.fieldErrors)) {
-      if (!message) {
-        continue;
-      }
-
-      if (
-        fieldName === "name" ||
-        fieldName === "email" ||
-        fieldName === "password"
-      ) {
-        form.setError(fieldName as keyof SignupInput, {
-          type: "server",
-          message,
-        });
-      }
-    }
-  }, [form, state.fieldErrors]);
+  const pending = isTransitionPending;
 
   const onSubmit = (values: SignupInput) => {
-    const formData = new FormData();
-    for (const field of effectiveFields) {
-      formData.set(field, values[field]);
-    }
+    startTransition(async () => {
+      setServerError(null);
+      const { data, error } = await authClient.signUp.email({
+        name: values.name,
+        email: values.email,
+        password: values.password,
+      });
 
-    startTransition(() => {
-      formAction(formData);
+      if (error) {
+        setServerError(error.message || "Could not create account");
+      } else {
+        router.push("/chat");
+      }
     });
   };
 
@@ -355,7 +324,7 @@ function SignupAuthForm({ fields, className, ...props }: InternalFormProps) {
                 <Button variant="outline" type="button" onClick={socialSignIn}>
                   Sign up with Google
                 </Button>
-                <FieldError className="text-center">{state.message}</FieldError>
+                <FieldError className="text-center">{serverError}</FieldError>
                 <FieldDescription className="text-center">
                   Already have an account? <a href="/login">Sign in</a>
                 </FieldDescription>

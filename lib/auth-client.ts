@@ -1,12 +1,13 @@
-import { createAuthClient } from "better-auth/react"
+import { createAuthClient } from "better-auth/react";
 import { toast } from "sonner";
-export const authClient = createAuthClient()
+
+export const authClient = createAuthClient();
 
 
 export const socialSignIn = async () => {
   const { error } = await authClient.signIn.social({
     provider: "google",
-    callbackURL: "/dashboard"
+    callbackURL: "/chat"
   });
   if (error) {
     toast.error("Sign in was not successful")
