@@ -42,17 +42,18 @@ PointerRAG is a Retrieval-Augmented Generation (RAG) system that allows users to
 
 ### 1. Environment Configuration
 
-Copy the provided `.env.example` to create a `.env` file in the root directory and ensure the **DATABASE_URL** is set:
+Copy the provided `.env.example` to create `.env` files in both the root directory and `backend/` directory, and ensure the **DATABASE_URL** is set to your Supabase connection string:
 
 ```properties
-DATABASE_URL=postgresql://admin:password@localhost:5432/pointerrag
+DATABASE_URL="postgresql://postgres:<YOUR_PASSWORD>@db.<YOUR_SUPABASE_REF>.supabase.co:5432/postgres"
 ```
 
-**Run Local Database via Docker (Recommended):**
-If you don't have PostgreSQL installed locally, you can easily spin up a containerized database using the provided `docker-compose.yml`:
+**Prisma Configuration:**
+The project uses Prisma to manage the database schema. After setting your `DATABASE_URL`, you need to pull the schema and generate the client:
 
 ```bash
-docker-compose up -d
+npx prisma db pull
+npx prisma generate
 ```
 
 ### 2. Backend Setup
@@ -112,6 +113,7 @@ The project includes utility scripts in the `scripts/` folder to help manage the
   ```
 
 - **Test API**: Runs a quick verification to ensure the Backend API is working and creating chats correctly.
+
   ```bash
   python scripts/test_chat_api.py
   ```
