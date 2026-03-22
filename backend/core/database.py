@@ -62,10 +62,8 @@ class ResourceManager:
         logger.info("Warming up embedding model with dummy text...")
         _ = self._embedding_model.encode("Warmup text for model initialization")
         
-        # Initialize Generation Model
-        logger.info("Initializing Pointer-Generator model...")
-        get_generation_service() # Forces lazy-loading config + model
-        
+        # Initialize Generation Model lazily instead to prevent OOM on startup
+        logger.info("Skipping eager initialization of Pointer-Generator model to save RAM...")        
         self._initialized = True
         logger.info("All resources initialized successfully!")
     

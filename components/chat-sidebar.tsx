@@ -1,36 +1,80 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { MessageSquarePlus, LogOut, Search, MoreVertical, Trash2, Sparkles } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarTrigger, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { cn } from "@/lib/utils"
-import type { Chat } from "./chat-interface"
-import { ModeToggle } from "@/components/mode-toggle"
-import { authClient } from "@/lib/auth-client"
-import { useRouter } from "next/navigation"
+import { useState } from "react";
+import { toast } from "sonner";
+import {
+  MessageSquarePlus,
+  LogOut,
+  Search,
+  MoreVertical,
+  Trash2,
+  Sparkles,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuAction,
+  SidebarMenuBadge,
+  SidebarMenuItem,
+  SidebarMenuButton,
+} from "@/components/ui/sidebar";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
+import type { Chat } from "@/lib/types";
+import { ModeToggle } from "@/components/mode-toggle";
+import { authClient } from "@/lib/auth-client";
+import { useRouter, useParams } from "next/navigation";
+import { createChatAction, deleteChatAction } from "@/lib/actions/chat";
 
 interface ChatSidebarProps {
-  chats: Chat[]
-  currentChatId: string | null
-  onSelectChat: (chatId: string) => void
-  onNewChat: (title: string) => void
-  onDeleteChat: (chatId: string) => void
+  chats: Chat[];
+  currentUser: {
+    name: string;
+    email: string;
+    image?: string | null;
+  };
 }
 
-export function ChatSidebar({ chats, currentChatId, onSelectChat, onNewChat, onDeleteChat }: ChatSidebarProps) {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [isNewChatDialogOpen, setIsNewChatDialogOpen] = useState(false)
-  const [newChatTitle, setNewChatTitle] = useState("")
+export function ChatSidebar({ chats, currentUser }: ChatSidebarProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isNewChatDialogOpen, setIsNewChatDialogOpen] = useState(false);
+  const [newChatTitle, setNewChatTitle] = useState("");
+  const [isCreatingChat, setIsCreatingChat] = useState(false);
+  const [isDeletingChatId, setIsDeletingChatId] = useState<string | null>(null);
 
-  const filteredChats = chats.filter((chat) => chat.title.toLowerCase().includes(searchQuery.toLowerCase()))
   const router = useRouter();
+  const params = useParams();
+  const currentChatId = params?.chatId as string | undefined;
+
+  const filteredChats = chats.filter((chat) =>
+    chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
   const handleLogout = async () => {
     try {
       await authClient.signOut({
@@ -43,39 +87,93 @@ export function ChatSidebar({ chats, currentChatId, onSelectChat, onNewChat, onD
     } catch (error) {
       console.error("Logout failed:", error);
     }
-  }
+  };
 
-  const handleCreateChat = () => {
-    if (newChatTitle.trim()) {
-      onNewChat(newChatTitle.trim())
-    } else {
-      onNewChat("New Chat")
+  const handleCreateChat = async () => {
+    if (isCreatingChat) return;
+    const title = newChatTitle.trim() || "New Chat";
+    setIsCreatingChat(true);
+
+    try {
+      const result = await createChatAction(title);
+      if (result.success) {
+        setIsNewChatDialogOpen(false);
+        setNewChatTitle("");
+        router.push(`/chat/${result.id}`);
+      }
+    } catch (error) {
+      console.error("Failed to create new chat:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred creating chat",
+      );
+    } finally {
+      setIsCreatingChat(false);
     }
-    setIsNewChatDialogOpen(false)
-    setNewChatTitle("")
-  }
+  };
+
+  const handleDeleteChat = async (chatId: string) => {
+    if (isDeletingChatId === chatId) return;
+    setIsDeletingChatId(chatId);
+    try {
+      const result = await deleteChatAction(chatId);
+      if (result.success) {
+        if (currentChatId === chatId) {
+          router.push("/chat");
+        }
+      }
+    } catch (error) {
+      console.error("Failed to delete chat:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred deleting chat",
+      );
+    } finally {
+      setIsDeletingChatId(null);
+    }
+  };
+
+  const userName = currentUser.name?.trim() || "User";
+  const userEmail = currentUser.email?.trim() || "No email";
+  const userImage = currentUser.image || undefined;
+  const nameParts = userName.split(/\s+/).filter(Boolean);
+  const firstInitial = nameParts[0]?.[0] || "U";
+  const lastInitial =
+    nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "";
+  const userInitials = `${firstInitial}${lastInitial}`.toUpperCase();
 
   return (
-    <Sidebar className="border-r border-sidebar-border">
+    <Sidebar collapsible="none" className="border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border p-4">
         <div className="flex items-center justify-between gap-2 mb-4">
           <div className="flex items-center gap-2">
             <div className="flex size-8 items-center justify-center rounded-lg bg-primary">
               <Sparkles className="size-4 text-primary-foreground" />
             </div>
-            <span className="text-lg font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">Pointer RAG</span>
+            <span className="text-lg font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">
+              Pointer RAG
+            </span>
           </div>
           <div className="flex items-center gap-1">
             <ModeToggle />
-            <SidebarTrigger />
           </div>
         </div>
 
-        <Dialog open={isNewChatDialogOpen} onOpenChange={setIsNewChatDialogOpen}>
+        <Dialog
+          open={isNewChatDialogOpen}
+          onOpenChange={setIsNewChatDialogOpen}
+        >
           <DialogTrigger asChild>
-            <Button className="w-full justify-start gap-2 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0" size="lg">
+            <Button
+              className="w-full justify-start gap-2 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0"
+              size="lg"
+            >
               <MessageSquarePlus className="size-4" />
-              <span className="group-data-[collapsible=icon]:hidden">New Chat</span>
+              <span className="group-data-[collapsible=icon]:hidden">
+                New Chat
+              </span>
             </Button>
           </DialogTrigger>
           <DialogContent>
@@ -86,14 +184,17 @@ export function ChatSidebar({ chats, currentChatId, onSelectChat, onNewChat, onD
               </DialogDescription>
             </DialogHeader>
             <div className="py-4">
-              <Label htmlFor="title" className="mb-2 block text-sm font-medium">Chat Title</Label>
+              <Label htmlFor="title" className="mb-2 block text-sm font-medium">
+                Chat Title
+              </Label>
               <Input
                 id="title"
                 placeholder="Enter chat title..."
                 value={newChatTitle}
                 onChange={(e) => setNewChatTitle(e.target.value)}
+                disabled={isCreatingChat}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") {
+                  if (e.key === "Enter" && !isCreatingChat) {
                     e.preventDefault();
                     handleCreateChat();
                   }
@@ -102,8 +203,16 @@ export function ChatSidebar({ chats, currentChatId, onSelectChat, onNewChat, onD
               />
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsNewChatDialogOpen(false)}>Cancel</Button>
-              <Button onClick={handleCreateChat}>Create Chat</Button>
+              <Button
+                variant="outline"
+                onClick={() => setIsNewChatDialogOpen(false)}
+                disabled={isCreatingChat}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleCreateChat} disabled={isCreatingChat}>
+                {isCreatingChat ? "Creating..." : "Create Chat"}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -125,94 +234,122 @@ export function ChatSidebar({ chats, currentChatId, onSelectChat, onNewChat, onD
         <Separator className="my-2 group-data-[collapsible=icon]:hidden" />
 
         <ScrollArea className="flex-1 min-h-0">
-          <div className="space-y-1 p-2">
+          <SidebarGroup className="p-2">
             {filteredChats.length === 0 ? (
               <div className="py-8 text-center text-sm text-muted-foreground group-data-[collapsible=icon]:hidden">
                 {searchQuery ? "No chats found" : "No chats yet"}
               </div>
             ) : (
-              filteredChats.map((chat) => (
-                <button
-                  key={chat.id}
-                  onClick={() => onSelectChat(chat.id)}
-                  className={cn(
-                    "group relative flex w-full flex-col gap-1 rounded-lg p-3 text-left transition-colors",
-                    "hover:bg-sidebar-accent",
-                    currentChatId === chat.id && "bg-sidebar-accent",
-                    "group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:items-center"
-                  )}
-                >
-                  <div className="flex items-start justify-between gap-2 w-full group-data-[collapsible=icon]:justify-center">
-                    <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
-                      <p className="truncate font-medium text-sm text-sidebar-foreground">{chat.title}</p>
-                    </div>
-                    {/* Icon for collapsed state representing the chat */}
-                    <div className="hidden group-data-[collapsible=icon]:block">
-                      <div className="flex size-6 items-center justify-center rounded-md bg-primary/10 text-primary text-xs font-medium">
-                        {chat.title.charAt(0).toUpperCase()}
+              <SidebarMenu>
+                {filteredChats.map((chat) => (
+                  <SidebarMenuItem key={chat.id}>
+                    <SidebarMenuButton
+                      isActive={currentChatId === chat.id}
+                      onClick={() => router.push(`/chat/${chat.id}`)}
+                      className={cn(
+                        "h-auto items-start gap-1.5 p-3",
+                        "group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0",
+                      )}
+                    >
+                      <div className="flex w-full items-start justify-between gap-2 group-data-[collapsible=icon]:justify-center">
+                        <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
+                          <p className="truncate font-medium text-sm text-sidebar-foreground">
+                            {chat.title}
+                          </p>
+                        </div>
+                        <div className="hidden group-data-[collapsible=icon]:block">
+                          <div className="flex size-6 items-center justify-center rounded-md bg-primary/10 text-primary text-xs font-medium">
+                            {chat.title.charAt(0).toUpperCase()}
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                      <div className="flex w-full items-center justify-between text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
+                        <span>{chat.timestamp}</span>
+                        {chat.documentCount > 0 && (
+                          <SidebarMenuBadge className="static h-auto min-w-0 px-2 py-0.5 text-[10px] text-primary">
+                            {chat.documentCount}{" "}
+                            {chat.documentCount === 1 ? "doc" : "docs"}
+                          </SidebarMenuBadge>
+                        )}
+                      </div>
+                    </SidebarMenuButton>
 
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 group-data-[collapsible=icon]:hidden"
+                      <DropdownMenuTrigger asChild>
+                        <SidebarMenuAction
+                          showOnHover
+                          onClick={(e) => e.stopPropagation()}
+                          className="group-data-[collapsible=icon]:hidden"
                         >
                           <MoreVertical className="size-4" />
-                        </Button>
+                        </SidebarMenuAction>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
                           onClick={(e) => {
-                            e.stopPropagation()
-                            onDeleteChat(chat.id)
+                            e.stopPropagation();
+                            handleDeleteChat(chat.id);
                           }}
+                          disabled={isDeletingChatId === chat.id}
                           className="text-destructive focus:text-destructive"
                         >
                           <Trash2 className="mr-2 size-4" />
-                          Delete
+                          {isDeletingChatId === chat.id
+                            ? "Deleting..."
+                            : "Delete"}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                  </div>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
-                    <span>{chat.timestamp}</span>
-                    {chat.documentCount > 0 && (
-                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-primary">
-                        {chat.documentCount} {chat.documentCount === 1 ? "doc" : "docs"}
-                      </span>
-                    )}
-                  </div>
-                </button>
-              ))
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
             )}
-          </div>
+          </SidebarGroup>
         </ScrollArea>
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border p-4">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-semibold">
-                U
-              </div>
-              <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-                <span className="truncate font-semibold">User Name</span>
-                <span className="truncate text-xs">user@example.com</span>
-              </div>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={handleLogout}>
-              <LogOut className="size-4" />
-              <span>Logout</span>
-            </SidebarMenuButton>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton
+                  size="lg"
+                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                >
+                  <Avatar className="rounded-sm" size="default">
+                    <AvatarImage src={userImage} alt={userName} />
+                    <AvatarFallback className="rounded-sm bg-primary text-primary-foreground font-semibold">
+                      {userInitials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
+                    <span className="truncate font-semibold">{userName}</span>
+                    <span className="truncate text-xs">{userEmail}</span>
+                  </div>
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-[--radix-dropdown-menu-trigger-width] min-w-56"
+                align="end"
+                side="top"
+              >
+                <DropdownMenuLabel className="truncate">
+                  {userName}
+                </DropdownMenuLabel>
+                <DropdownMenuLabel className="-mt-2 truncate text-xs font-normal text-muted-foreground">
+                  {userEmail}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="size-4" />
+                  <span>Logout</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

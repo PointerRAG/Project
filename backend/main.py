@@ -12,8 +12,7 @@ from backend.core.config import settings
 from backend.core.database import init_resources, cleanup_resources, resource_manager
 from backend.api.v1.vector_routes import router as vector_router
 from backend.api.v1.ingestion_routes import router as ingestion_router
-from backend.api.v1.chat_routes import router as chat_router
-from backend.core.sql_database import Base, engine
+from backend.api.v1.model_routes import router as model_router
 
 # Configure logging
 logging.basicConfig(
@@ -38,14 +37,7 @@ async def lifespan(app: FastAPI):
     # Initialize resources (ChromaDB client and embedding model)
     init_resources()
     
-    # Ensure database tables exist (Fallback if migrations failed)
-    logger.info("Verifying database tables...")
-    try:
-        Base.metadata.create_all(bind=engine)
-        logger.info("Database tables verified.")
-    except Exception as e:
-        logger.error(f"Error creating database tables: {e}")
-
+    # Next.js will handle SQL migrations. We just skip it here.
     logger.info("Application startup complete!")
     
     yield
@@ -88,7 +80,7 @@ app.include_router(
     prefix=settings.API_V1_PREFIX
 )
 app.include_router(
-    chat_router,
+    model_router,
     prefix=settings.API_V1_PREFIX
 )
 

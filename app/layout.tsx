@@ -1,17 +1,17 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
-import { Analytics } from "@vercel/analytics/next"
-import { ThemeProvider } from "@/components/theme-provider"
-import "./globals.css"
+import type React from "react";
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import { ThemeProvider } from "@/components/theme-provider";
+import "./globals.css";
+import { Toaster } from "@/components/ui/sonner";
 
-const _geist = Geist({ subsets: ["latin"] })
-const _geistMono = Geist_Mono({ subsets: ["latin"] })
+const _geist = Geist({ subsets: ["latin"] });
+const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "PointerRAG",
   description: "Intelligent chatbot with document understanding capabilities",
-  generator: "v0.app",
+  generator: "Next.js",
   icons: {
     icon: [
       {
@@ -29,21 +29,26 @@ export const metadata: Metadata = {
     ],
     apple: "/apple-icon.png",
   },
-}
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`font-sans antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
           {children}
         </ThemeProvider>
-        <Analytics />
+        <Toaster />
       </body>
     </html>
-  )
+  );
 }
