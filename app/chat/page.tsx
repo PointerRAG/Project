@@ -13,5 +13,14 @@ export default async function ChatIndexPage() {
     redirect(`/chat/${chats[0].id}`);
   }
 
-  return <ChatArea currentChat={undefined} messages={[]} />;
+  return (
+    <ChatArea
+      currentChat={undefined}
+      messages={[]}
+      currentUser={{
+        name: session.user.name,
+        image: session.user.image,
+      }}
+    />
+  );
 }

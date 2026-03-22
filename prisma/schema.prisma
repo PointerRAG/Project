@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -58,7 +57,7 @@ model Account {
 }
 
 model Verification {
-  id         String    @id
+  id         String   @id
   identifier String
   value      String
   expiresAt  DateTime
@@ -83,7 +82,7 @@ model Chat {
 
 model Message {
   id        String   @id @default(uuid())
-  role      String   // "user" or "assistant"
+  role      String // "user" or "assistant"
   content   String
   createdAt DateTime @default(now())
   chatId    String

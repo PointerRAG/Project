@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import {
   MessageSquarePlus,
   LogOut,
@@ -53,19 +54,23 @@ import { createChatAction, deleteChatAction } from "@/lib/actions/chat";
 
 interface ChatSidebarProps {
   chats: Chat[];
+  currentUser: {
+    name: string;
+    email: string;
+    image?: string | null;
+  };
 }
 
-export function ChatSidebar({ chats }: ChatSidebarProps) {
+export function ChatSidebar({ chats, currentUser }: ChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isNewChatDialogOpen, setIsNewChatDialogOpen] = useState(false);
   const [newChatTitle, setNewChatTitle] = useState("");
+  const [isCreatingChat, setIsCreatingChat] = useState(false);
+  const [isDeletingChatId, setIsDeletingChatId] = useState<string | null>(null);
 
   const router = useRouter();
   const params = useParams();
   const currentChatId = params?.chatId as string | undefined;
-
-  const { data: session, isPending: isSessionPending } =
-    authClient.useSession();
 
   const filteredChats = chats.filter((chat) =>
     chat.title.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -85,36 +90,54 @@ export function ChatSidebar({ chats }: ChatSidebarProps) {
   };
 
   const handleCreateChat = async () => {
+    if (isCreatingChat) return;
     const title = newChatTitle.trim() || "New Chat";
-    setIsNewChatDialogOpen(false);
-    setNewChatTitle("");
+    setIsCreatingChat(true);
 
     try {
       const result = await createChatAction(title);
       if (result.success) {
+        setIsNewChatDialogOpen(false);
+        setNewChatTitle("");
         router.push(`/chat/${result.id}`);
-        // router.refresh() is handled natively by revalidatePath in the action!
       }
     } catch (error) {
       console.error("Failed to create new chat:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred creating chat",
+      );
+    } finally {
+      setIsCreatingChat(false);
     }
   };
 
   const handleDeleteChat = async (chatId: string) => {
+    if (isDeletingChatId === chatId) return;
+    setIsDeletingChatId(chatId);
     try {
-      await deleteChatAction(chatId);
-      if (currentChatId === chatId) {
-        router.push("/chat");
+      const result = await deleteChatAction(chatId);
+      if (result.success) {
+        if (currentChatId === chatId) {
+          router.push("/chat");
+        }
       }
-      // router.refresh() is handled natively by revalidatePath in the action!
     } catch (error) {
       console.error("Failed to delete chat:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred deleting chat",
+      );
+    } finally {
+      setIsDeletingChatId(null);
     }
   };
 
-  const userName = session?.user?.name?.trim() || "User";
-  const userEmail = session?.user?.email?.trim() || "No email";
-  const userImage = session?.user?.image || undefined;
+  const userName = currentUser.name?.trim() || "User";
+  const userEmail = currentUser.email?.trim() || "No email";
+  const userImage = currentUser.image || undefined;
   const nameParts = userName.split(/\s+/).filter(Boolean);
   const firstInitial = nameParts[0]?.[0] || "U";
   const lastInitial =
@@ -169,8 +192,9 @@ export function ChatSidebar({ chats }: ChatSidebarProps) {
                 placeholder="Enter chat title..."
                 value={newChatTitle}
                 onChange={(e) => setNewChatTitle(e.target.value)}
+                disabled={isCreatingChat}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") {
+                  if (e.key === "Enter" && !isCreatingChat) {
                     e.preventDefault();
                     handleCreateChat();
                   }
@@ -182,10 +206,13 @@ export function ChatSidebar({ chats }: ChatSidebarProps) {
               <Button
                 variant="outline"
                 onClick={() => setIsNewChatDialogOpen(false)}
+                disabled={isCreatingChat}
               >
                 Cancel
               </Button>
-              <Button onClick={handleCreateChat}>Create Chat</Button>
+              <Button onClick={handleCreateChat} disabled={isCreatingChat}>
+                {isCreatingChat ? "Creating..." : "Create Chat"}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -263,10 +290,13 @@ export function ChatSidebar({ chats }: ChatSidebarProps) {
                             e.stopPropagation();
                             handleDeleteChat(chat.id);
                           }}
+                          disabled={isDeletingChatId === chat.id}
                           className="text-destructive focus:text-destructive"
                         >
                           <Trash2 className="mr-2 size-4" />
-                          Delete
+                          {isDeletingChatId === chat.id
+                            ? "Deleting..."
+                            : "Delete"}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -294,12 +324,8 @@ export function ChatSidebar({ chats }: ChatSidebarProps) {
                     </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-                    <span className="truncate font-semibold">
-                      {isSessionPending ? "Loading..." : userName}
-                    </span>
-                    <span className="truncate text-xs">
-                      {isSessionPending ? "Loading..." : userEmail}
-                    </span>
+                    <span className="truncate font-semibold">{userName}</span>
+                    <span className="truncate text-xs">{userEmail}</span>
                   </div>
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
@@ -309,10 +335,10 @@ export function ChatSidebar({ chats }: ChatSidebarProps) {
                 side="top"
               >
                 <DropdownMenuLabel className="truncate">
-                  {isSessionPending ? "Loading account..." : userName}
+                  {userName}
                 </DropdownMenuLabel>
                 <DropdownMenuLabel className="-mt-2 truncate text-xs font-normal text-muted-foreground">
-                  {isSessionPending ? "Loading..." : userEmail}
+                  {userEmail}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>

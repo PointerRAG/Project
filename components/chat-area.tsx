@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
 import { Send, FileUp, Paperclip, File, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -29,12 +31,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 // Import shared types
 import type { Chat as ChatModel, Message } from "@/lib/types";
-import { authClient } from "@/lib/auth-client";
 import { sendMessageAction, uploadDocumentAction } from "@/lib/actions/chat";
 
 interface ChatAreaProps {
   currentChat: ChatModel | undefined;
   messages: Message[];
+  currentUser: {
+    name: string;
+    image?: string | null;
+  };
 }
 
 interface UploadedDocument {
@@ -43,14 +48,15 @@ interface UploadedDocument {
   size: string;
 }
 
-import { useRouter } from "next/navigation";
-
-export function ChatArea({ currentChat, messages }: ChatAreaProps) {
+export function ChatArea({
+  currentChat,
+  messages,
+  currentUser,
+}: ChatAreaProps) {
   const [input, setInput] = useState("");
   const [localMessages, setLocalMessages] = useState<Message[]>(messages);
   const [isGenerating, setIsGenerating] = useState(false);
   const [documents, setDocuments] = useState<UploadedDocument[]>([]);
-  const { data: session } = authClient.useSession();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -60,8 +66,8 @@ export function ChatArea({ currentChat, messages }: ChatAreaProps) {
     setLocalMessages(messages);
   }, [messages, currentChat?.id]);
 
-  const userName = session?.user?.name?.trim() || "User";
-  const userImage = session?.user?.image || undefined;
+  const userName = currentUser.name?.trim() || "User";
+  const userImage = currentUser.image || undefined;
   const nameParts = userName.split(/\s+/).filter(Boolean);
   const firstInitial = nameParts[0]?.[0] || "U";
   const lastInitial =
@@ -78,10 +84,10 @@ export function ChatArea({ currentChat, messages }: ChatAreaProps) {
     if (!container) return;
 
     container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
-  }, [messages]);
+  }, [localMessages]);
 
   const handleSendMessage = async (content: string) => {
-    if (!currentChat) return;
+    if (!currentChat || isGenerating) return;
 
     const optimisticMsg: Message = {
       id: Date.now().toString(),
@@ -235,11 +241,8 @@ export function ChatArea({ currentChat, messages }: ChatAreaProps) {
         </div>
       )}
 
-      <ChatMessages
-        ref={messagesContainerRef}
-        className="min-h-0 flex-col px-4 md:px-6"
-      >
-        {messages.length === 0 ? (
+      <ChatMessages ref={messagesContainerRef} className="min-h-0 px-4 md:px-6">
+        {localMessages.length === 0 ? (
           <div className="flex h-full min-h-100 flex-col items-center justify-center p-8 text-center opacity-50 select-none">
             <div className="mb-6 flex size-20 items-center justify-center rounded-3xl bg-primary/10">
               <FileUp className="size-10 text-primary" />
@@ -401,14 +404,19 @@ export function ChatArea({ currentChat, messages }: ChatAreaProps) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onSubmit={handleSend}
-          placeholder="Type your message... (Shift+Enter for new line)"
+          disabled={isGenerating}
+          placeholder={
+            isGenerating
+              ? "AI is generating..."
+              : "Type your message... (Shift+Enter for new line)"
+          }
           className="max-h-50 bg-background"
         />
 
         <ChatToolbarAddon align="inline-end">
           <ChatToolbarButton
             onClick={handleSend}
-            disabled={!input.trim()}
+            disabled={!input.trim() || isGenerating}
             aria-label="Send message"
           >
             <Send className="size-4" />

@@ -19,5 +19,14 @@ export default async function ChatPage({
     redirect("/chat");
   }
 
-  return <ChatArea currentChat={chat} messages={chat.messages} />;
+  return (
+    <ChatArea
+      currentChat={chat}
+      messages={chat.messages}
+      currentUser={{
+        name: session.user.name,
+        image: session.user.image,
+      }}
+    />
+  );
 }

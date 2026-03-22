@@ -18,7 +18,7 @@ export async function getUserChats(userId: string): Promise<Chat[]> {
     title: c.title,
     timestamp: new Date(c.updatedAt).toLocaleDateString(),
     documentCount: c.documentCount,
-    lastMessage: c.messages.length > 0 ? c.messages[0].content : "",
+    lastMessage: c.messages.length > 0 ? c.messages[0].content : null,
     messages: [],
   }));
 }
@@ -27,8 +27,8 @@ export async function getChatById(
   chatId: string,
   userId: string,
 ): Promise<Chat | null> {
-  const chat = await prisma.chat.findUnique({
-    where: { id: chatId },
+  const chat = await prisma.chat.findFirst({
+    where: { id: chatId, userId },
     include: {
       messages: {
         orderBy: { createdAt: "asc" },
@@ -36,7 +36,7 @@ export async function getChatById(
     },
   });
 
-  if (!chat || chat.userId !== userId) {
+  if (!chat) {
     return null;
   }
 

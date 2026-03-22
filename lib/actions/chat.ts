@@ -5,6 +5,9 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 
+const BACKEND_API_BASE =
+  process.env.BACKEND_API_BASE ?? "http://127.0.0.1:8000/api/v1";
+
 export async function createChatAction(title: string) {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -47,8 +50,7 @@ export async function deleteChatAction(chatId: string) {
   });
 
   try {
-    const backendUrl = process.env.BACKEND_URL || "http://127.0.0.1:8000";
-    await fetch(`${backendUrl}/api/v1/model/${chatId}`, {
+    await fetch(`${BACKEND_API_BASE}/model/${chatId}`, {
       method: "DELETE",
     });
   } catch (err) {
@@ -59,8 +61,7 @@ export async function deleteChatAction(chatId: string) {
   return { success: true };
 }
 
-const BACKEND_API_BASE =
-  process.env.BACKEND_API_BASE ?? "http://127.0.0.1:8000/api/v1";
+
 
 export async function sendMessageAction(chatId: string, content: string) {
   const session = await auth.api.getSession({
@@ -92,39 +93,24 @@ export async function sendMessageAction(chatId: string, content: string) {
     },
   });
 
-  // Call Python backend
-  const response = await fetch(`${BACKEND_API_BASE}/model/generate`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: chatId, query: content }),
-  });
+  let aiContent = "Sorry, the model service is currently unavailable.";
 
-  if (!response.ok) {
-    console.error("Python backend error:", await response.text());
-    const failMessage = await prisma.message.create({
-      data: {
-        role: "assistant",
-        content: "Sorry, the model service is currently unavailable.",
-        chatId,
-      },
+  try {
+    const response = await fetch(`${BACKEND_API_BASE}/model/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, query: content }),
     });
-    revalidatePath(`/chat`);
-    return {
-      success: true,
-      message: {
-        id: failMessage.id,
-        role: failMessage.role,
-        content: failMessage.content,
-        timestamp: new Date(failMessage.createdAt).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      },
-    };
-  }
 
-  const result = await response.json();
-  const aiContent = result.answer || "Sorry, I couldn't generate an answer.";
+    if (response.ok) {
+      const result = await response.json();
+      aiContent = result.answer || "Sorry, I couldn't generate an answer.";
+    } else {
+      console.error("Python backend error:", await response.text());
+    }
+  } catch (err) {
+    console.error("Failed to communicate with Python backend:", err);
+  }
 
   // Save AI message
   const aiMessage = await prisma.message.create({
