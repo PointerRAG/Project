@@ -6,11 +6,12 @@ PointerRAG is a Retrieval-Augmented Generation (RAG) system that allows users to
 
 - **Chat Interface**: Real-time chat with AI assistance.
 - **Persistent History**: Chat sessions and messages are saved in PostgreSQL.
-- **Document Ingestion**: Upload PDF, TXT, and Markdown files.
+- **Document Ingestion**: Upload PDF, TXT, and Markdown files with structural preservation using block-level text extraction.
 - **RAG Pipeline**:
-  - Automatic text chunking and embedding.
-  - Vector search using ChromaDB.
-  - Context-aware responses.
+  - Automatic text chunking, embedding, and context cleaning.
+  - Vector search using ChromaDB, which automatically logs the top 3 retrieved contexts to `retrieved_docs.txt` on queries.
+  - Post-processing layer to format numbered lists and improve structural clarity for generated responses.
+  - Generative AI via a local Pointer-Generator Network (T5-based, loaded from `checkpoint-1876`).
 - **Backend API**: Fast and scalable API built with FastAPI.
 
 ## Tech Stack
