@@ -25,9 +25,9 @@ logger = logging.getLogger(__name__)
 SUPPORTED_EXTENSIONS = {".pdf", ".txt", ".md"}
 
 # Chunking configuration (tokens roughly = chars / 4)
-# 800 chars ≈ 200 tokens, overlap of 80 chars ≈ 20 tokens (10%)
+# 600 chars ≈ 150 tokens, overlap of 150 chars ≈ 37.5 tokens (25%)
 CHUNK_SIZE = 600
-CHUNK_OVERLAP = 80
+CHUNK_OVERLAP = 150
 
 # Separators for RecursiveCharacterTextSplitter (prioritized)
 CHUNK_SEPARATORS = [
