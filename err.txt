@@ -1,0 +1,16 @@
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma\schema.prisma.
+Error: Prisma schema validation - (get-dmmf wasm)
+Error code: P1012
+[1;91merror[0m: [1mField "messages" is already defined on model "Chat".[0m
+  [1;94m-->[0m  [4mprisma\schema.prisma:80[0m
+[1;94m   | [0m
+[1;94m79 | [0m  documentCount Int       @default(0)
+[1;94m80 | [0m  [1;91mmessages[0m      Message[]
+[1;94m   | [0m
+
+Validation Error Count: 1
+[Context: getDmmf]
+
+Prisma CLI Version : 7.5.0

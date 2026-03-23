@@ -1,0 +1,89 @@
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma\schema.prisma.
+Error: Prisma schema validation - (get-config wasm)
+Error code: P1012
+error: Error validating: This line is not a valid definition within a datasource.
+  -->  prisma\schema.prisma:8
+   | 
+ 7 |   provider = "postgresql"
+ 8 | <<<<<<< Updated upstream
+ 9 | }
+   | 
+
+
+error: Error validating: This line is not a valid field or attribute definition.
+  -->  prisma\schema.prisma:70
+   | 
+69 |   @@map("verification")
+70 | =======
+71 | >>>>>>> Stashed changes
+   | 
+
+
+error: Error validating: This line is not a valid field or attribute definition.
+  -->  prisma\schema.prisma:71
+   | 
+70 | =======
+71 | >>>>>>> Stashed changes
+72 | }
+   | 
+
+
+error: Error validating: This line is not a valid field or attribute definition.
+  -->  prisma\schema.prisma:79
+   | 
+78 |   updatedAt     DateTime  @updatedAt
+79 | <<<<<<< Updated upstream
+80 |   userId        String
+   | 
+
+
+error: Error validating: This line is not a valid field or attribute definition.
+  -->  prisma\schema.prisma:83
+   | 
+82 |   messages      Message[]
+83 | =======
+84 |   userId        String    @default("guest")
+   | 
+
+
+error: Error validating: This line is not a valid field or attribute definition.
+  -->  prisma\schema.prisma:85
+   | 
+84 |   userId        String    @default("guest")
+85 | >>>>>>> Stashed changes
+86 |   documentCount Int       @default(0)
+   | 
+
+
+error: Error validating: This line is not a valid field or attribute definition.
+  -->  prisma\schema.prisma:94
+   | 
+93 |   id        String   @id @default(uuid())
+94 | <<<<<<< Updated upstream
+95 |   role      String // "user" or "assistant"
+   | 
+
+
+error: Error validating: This line is not a valid field or attribute definition.
+  -->  prisma\schema.prisma:96
+   | 
+95 |   role      String // "user" or "assistant"
+96 | =======
+97 |   role      String
+   | 
+
+
+error: Error validating: This line is not a valid field or attribute definition.
+  -->  prisma\schema.prisma:98
+   | 
+97 |   role      String
+98 | >>>>>>> Stashed changes
+99 |   content   String
+   | 
+
+Validation Error Count: 9
+[Context: getConfig]
+
+Prisma CLI Version : 7.5.0

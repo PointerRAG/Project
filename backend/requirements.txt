@@ -1,4 +1,4 @@
-﻿fastapi
+fastapi
 uvicorn
 chromadb
 sentence-transformers
@@ -14,3 +14,4 @@ transformers
 sentencepiece
 safetensors
 torch
+deepmultilingualpunctuation

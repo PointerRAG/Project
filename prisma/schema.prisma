@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  engineType = "binary"
 }
 
 datasource db {
@@ -74,8 +75,8 @@ model Chat {
   updatedAt     DateTime  @updatedAt
   userId        String
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  messages      Message[]
   documentCount Int       @default(0)
+  messages      Message[]
 
   @@index([userId])
 }

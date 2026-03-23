@@ -1,0 +1,106 @@
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma\schema.prisma.
+Error: Prisma schema validation - (get-dmmf wasm)
+Error code: P1012
+[1;91merror[0m: [1mThe model with database name "account" could not be defined because another model or view with this name exists: "account"[0m
+  [1;94m-->[0m  [4mprisma\schema.prisma:57[0m
+[1;94m   | [0m
+[1;94m56 | [0m
+[1;94m57 | [0m  [1;91m@@map("account")[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mThe model with database name "session" could not be defined because another model or view with this name exists: "session"[0m
+  [1;94m-->[0m  [4mprisma\schema.prisma:38[0m
+[1;94m   | [0m
+[1;94m37 | [0m  @@unique([token])
+[1;94m38 | [0m  [1;91m@@map("session")[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mThe model with database name "user" could not be defined because another model or view with this name exists: "user"[0m
+  [1;94m-->[0m  [4mprisma\schema.prisma:23[0m
+[1;94m   | [0m
+[1;94m22 | [0m  @@unique([email])
+[1;94m23 | [0m  [1;91m@@map("user")[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mThe model with database name "verification" could not be defined because another model or view with this name exists: "verification"[0m
+  [1;94m-->[0m  [4mprisma\schema.prisma:68[0m
+[1;94m   | [0m
+[1;94m67 | [0m
+[1;94m68 | [0m  [1;91m@@map("verification")[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError parsing attribute "@id": The given constraint name `user_pkey` has to be unique in the following namespace: global for primary key, indexes and unique constraints. Please provide a different name using the `map` argument.[0m
+  [1;94m-->[0m  [4mprisma\schema.prisma:11[0m
+[1;94m   | [0m
+[1;94m10 | [0mmodel User {
+[1;94m11 | [0m  id            String    [1;91m@id[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError parsing attribute "@@unique": The given constraint name `user_email_key` has to be unique in the following namespace: global for primary key, indexes and unique constraints. Please provide a different name using the `map` argument.[0m
+  [1;94m-->[0m  [4mprisma\schema.prisma:22[0m
+[1;94m   | [0m
+[1;94m21 | [0m
+[1;94m22 | [0m  [1;91m@@unique([email])[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError parsing attribute "@id": The given constraint name `session_pkey` has to be unique in the following namespace: global for primary key, indexes and unique constraints. Please provide a different name using the `map` argument.[0m
+  [1;94m-->[0m  [4mprisma\schema.prisma:27[0m
+[1;94m   | [0m
+[1;94m26 | [0mmodel Session {
+[1;94m27 | [0m  id        String   [1;91m@id[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError parsing attribute "@@unique": The given constraint name `session_token_key` has to be unique in the following namespace: global for primary key, indexes and unique constraints. Please provide a different name using the `map` argument.[0m
+  [1;94m-->[0m  [4mprisma\schema.prisma:37[0m
+[1;94m   | [0m
+[1;94m36 | [0m
+[1;94m37 | [0m  [1;91m@@unique([token])[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError parsing attribute "@id": The given constraint name `account_pkey` has to be unique in the following namespace: global for primary key, indexes and unique constraints. Please provide a different name using the `map` argument.[0m
+  [1;94m-->[0m  [4mprisma\schema.prisma:42[0m
+[1;94m   | [0m
+[1;94m41 | [0mmodel Account {
+[1;94m42 | [0m  id                    String    [1;91m@id[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError parsing attribute "@id": The given constraint name `verification_pkey` has to be unique in the following namespace: global for primary key, indexes and unique constraints. Please provide a different name using the `map` argument.[0m
+  [1;94m-->[0m  [4mprisma\schema.prisma:61[0m
+[1;94m   | [0m
+[1;94m60 | [0mmodel Verification {
+[1;94m61 | [0m  id         String   [1;91m@id[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError parsing attribute "@id": The given constraint name `account_pkey` has to be unique in the following namespace: global for primary key, indexes and unique constraints. Please provide a different name using the `map` argument.[0m
+  [1;94m-->[0m  [4mprisma\schema.prisma:96[0m
+[1;94m   | [0m
+[1;94m95 | [0mmodel account {
+[1;94m96 | [0m  id                    String    [1;91m@id[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError parsing attribute "@id": The given constraint name `session_pkey` has to be unique in the following namespace: global for primary key, indexes and unique constraints. Please provide a different name using the `map` argument.[0m
+  [1;94m-->[0m  [4mprisma\schema.prisma:115[0m
+[1;94m   | [0m
+[1;94m114 | [0mmodel session {
+[1;94m115 | [0m  id        String   [1;91m@id[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError parsing attribute "@unique": The given constraint name `session_token_key` has to be unique in the following namespace: global for primary key, indexes and unique constraints. Please provide a different name using the `map` argument.[0m
+  [1;94m-->[0m  [4mprisma\schema.prisma:117[0m
+[1;94m   | [0m
+[1;94m116 | [0m  expiresAt DateTime @db.Timestamptz(6)
+[1;94m117 | [0m  token     String   [1;91m@unique[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError parsing attribute "@id": The given constraint name `user_pkey` has to be unique in the following namespace: global for primary key, indexes and unique constraints. Please provide a different name using the `map` argument.[0m
+  [1;94m-->[0m  [4mprisma\schema.prisma:129[0m
+[1;94m   | [0m
+[1;94m128 | [0mmodel user {
+[1;94m129 | [0m  id            String    [1;91m@id[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError parsing attribute "@unique": The given constraint name `user_email_key` has to be unique in the following namespace: global for primary key, indexes and unique constraints. Please provide a different name using the `map` argument.[0m
+  [1;94m-->[0m  [4mprisma\schema.prisma:131[0m
+[1;94m   | [0m
+[1;94m130 | [0m  name          String
+[1;94m131 | [0m  email         String    [1;91m@unique[0m
+[1;94m   | [0m
+[1;91merror[0m: [1mError parsing attribute "@id": The given constraint name `verification_pkey` has to be unique in the following namespace: global for primary key, indexes and unique constraints. Please provide a different name using the `map` argument.[0m
+  [1;94m-->[0m  [4mprisma\schema.prisma:141[0m
+[1;94m   | [0m
+[1;94m140 | [0mmodel verification {
+[1;94m141 | [0m  id         String   [1;91m@id[0m
+[1;94m   | [0m
+
+Validation Error Count: 16
+[Context: getDmmf]
+
+Prisma CLI Version : 7.5.0
