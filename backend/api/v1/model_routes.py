@@ -1,7 +1,16 @@
 import logging
+import re
 from typing import Dict, Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+
+def _post_process_context(text: str) -> str:
+    """Enhance structure of numbered lists for the generation model."""
+    # Matches a number followed by a dot, preceded by start of string or whitespace
+    processed = re.sub(r'(^|\s)(\d+)[\.\)]\s+', r'\1\n[List Item \2]: ', text)
+    # Clean up any excessive newlines we might have accidentally created
+    processed = processed.replace('\n\n[List Item', '\n[List Item').strip()
+    return processed
 
 from backend.services.vector_service import get_vector_service
 from backend.services.generation_service import get_generation_service
@@ -20,6 +29,22 @@ def generate_answer(request: GenerateRequest) -> Dict[str, Any]:
         vector_service = get_vector_service()
         # Search for documents relevant to the query in the chat's collection
         search_results = vector_service.search_documents(request.chat_id, request.query, top_k=3)
+        
+        # Apply post-processing to each document's text beforehand
+        for doc in search_results.results:
+            doc.text = _post_process_context(doc.text)
+        
+        # Save top 3 retrieved documents to a text file
+        try:
+            with open(r"d:\pointerRAG\retrieved_docs.txt", "w", encoding="utf-8") as f:
+                f.write(f"Query: {request.query}\n")
+                f.write("="*40 + "\n\n")
+                for i, doc in enumerate(search_results.results, 1):
+                    f.write(f"--- Document {i} ---\n")
+                    f.write(f"{doc.text}\n\n")
+        except Exception as file_err:
+            logger.error(f"Failed to write retrieved docs to file: {file_err}")
+
         context_str = "\n\n".join([doc.text for doc in search_results.results])
         
         if context_str:

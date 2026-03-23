@@ -1,0 +1,15 @@
+Query: What is mining?
+========================================
+
+--- Document 1 ---
+Mining Mining is a process by which new blocks are added to the blockchain. Blocks contain transactions that are validated via the mining process by mining nodes on the Bitcoin network. Blocks, once mined and verified are added to the blockchain which keeps the blockchain growing. This process is resource-intensive due to the requirements of PoW where miners compete in order to find a number which is less than the difficulty target of the network
+
+--- Document 2 ---
+New coins are minted by the miners by solving the PoW problem, also known as partial hash inversion problem. This process consumes a high amount of resources including computing power and electricity. This process also secures the system against frauds and double spending attacks while adding more virtual currency to the Bitcoin ecosystem. Roughly one new block is created (mined) every 10 minutes. This frequency needs to be maintained by the Bitcoin network. Miners are rewarded with new coins if and when they discover new blocks by solving PoW
+
+--- Document 3 ---
+[List Item 5]: Mining starts, which is a process by which the blockchain is secured and new coins are generated as a reward for the miners who spend appropriate computational resources. 
+[List Item 6]: Once a miner solves the PoW problem it broadcasts the newly mined block to the network. 
+[List Item 7]: The nodes verify the block and propagate the block further, and confirmations start to generate. 
+[List Item 8]: Finally, the confirmations start to appear in the receiver's wallet and after approximately three confirmations, the transaction is considered finalized and confirmed
+

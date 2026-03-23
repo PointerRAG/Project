@@ -26,7 +26,7 @@ SUPPORTED_EXTENSIONS = {".pdf", ".txt", ".md"}
 
 # Chunking configuration (tokens roughly = chars / 4)
 # 800 chars ≈ 200 tokens, overlap of 80 chars ≈ 20 tokens (10%)
-CHUNK_SIZE = 800
+CHUNK_SIZE = 600
 CHUNK_OVERLAP = 80
 
 # Separators for RecursiveCharacterTextSplitter (prioritized)
@@ -140,7 +140,9 @@ class IngestionService:
         try:
             for page_num, page in enumerate(doc):
                 try:
-                    text = page.get_text("text")
+                    blocks = page.get_text("blocks")
+                    # Extract text from text blocks (block_type == 0)
+                    text = "\n\n".join([str(b[4]) for b in blocks if len(b) >= 7 and b[6] == 0])
                     cleaned = self._clean_text(text)
                     
                     if cleaned:
