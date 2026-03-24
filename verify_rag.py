@@ -2,7 +2,7 @@ import requests
 import json
 import os
 
-BASE_URL = "http://localhost:8001/api/v1"
+BASE_URL = "http://localhost:8000/api/v1"
 
 def verify_rag():
     print("1. Creating Chat...")

@@ -47,6 +47,12 @@ def generate_answer(request: GenerateRequest) -> Dict[str, Any]:
 
         context_str = "\n\n".join([doc.text for doc in search_results.results])
         
+        with open("retrieved_docs.txt", "w", encoding="utf-8") as f:
+            f.write(f"Query: {request.query}\n\n")
+            # Write the top 3 documents to a text file for verification
+            for i, doc in enumerate(search_results.results):
+                f.write(f"--- Document {i+1} ---\n{doc.text}\n\n")
+        
         if context_str:
             generation_service = get_generation_service()
             ai_content = generation_service.generate_answer(request.query, context_str)
