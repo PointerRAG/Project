@@ -161,7 +161,12 @@ class VectorService:
         
         # Generate query embedding
         logger.info(f"Searching collection chat_{chat_id} with query: {query[:50]}...")
-        query_embedding = self.generate_embedding(query)
+        
+        # Add instruction for BGE models to improve retrieval quality
+        instruction = "Represent this sentence for searching relevant passages: "
+        instructed_query = f"{instruction}{query}"
+        
+        query_embedding = self.generate_embedding(instructed_query)
         
         # Query the collection
         results = collection.query(

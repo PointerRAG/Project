@@ -1,0 +1,11 @@
+Query: properties of smart contracts
+
+--- Document 1 ---
+A smart contract has the following four properties: 1. Automatically executable: runs on a blockchain without any intervention 2. Enforceable: all contract conditions are enforced automatically 3. Semantically sound: tamper-proof and run with security guarantees 4. Secure and unstoppable: ensures that smart contracts always produce the same output for a specific input
+
+--- Document 2 ---
+Smart Contracts Definition A smart contract is a secure and unstoppable computer program representing an agreement that is automatically executable and enforceable. Secure and unstoppable: Means that these computer programs are required to be designed in such a fashion that they are fault-tolerant and executable in a reasonable amount of time. These programs should be able to execute and maintain a healthy internal state, even if external factors are unfavorable. Smart contracts are self-enforcing as opposed to legally enforceable. Smart contracts are not really smart, they are simply doing what they are programmed to do.
+
+--- Document 3 ---
+Module IV Smart contracts - Definition, smart contract templates, Oracles, Types of oracles, Deploying smart contracts. Decentralization terminology - Decentralized applications, Decentralized Autonomous Organizations. Use cases of Blockchain technology - Government, healthcare, Finance, Supply chain management. Blockchain and allied technologies - Blockchain and Cloud Computing, Blockchain and Artificial Intelligence.
+
