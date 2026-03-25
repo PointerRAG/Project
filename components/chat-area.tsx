@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 // Import shared types
 import type { Chat as ChatModel, Message } from "@/lib/types";
 import { sendMessageAction, uploadDocumentAction } from "@/lib/actions/chat";
+import { toast } from "sonner";
 
 interface ChatAreaProps {
   currentChat: ChatModel | undefined;
@@ -126,8 +127,28 @@ export function ChatArea({
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
+    const MAX_SIZE_BYTES = 1 * 1024 * 1024; // 1 MB
+
+    // Filter out oversized files and show a toast for each rejected one
+    const validFiles: File[] = [];
+    for (const file of Array.from(files)) {
+      if (file.size > MAX_SIZE_BYTES) {
+        toast.error(`"${file.name}" is too large`, {
+          description: `Files must be under 1 MB. This file is ${(file.size / (1024 * 1024)).toFixed(2)} MB.`,
+        });
+      } else {
+        validFiles.push(file);
+      }
+    }
+
+    if (validFiles.length === 0) {
+      // Reset the input so the same file can be re-selected after rejection
+      e.target.value = "";
+      return;
+    }
+
     // Show optimistic UI updates immediately
-    const newDocuments: UploadedDocument[] = Array.from(files).map((file) => ({
+    const newDocuments: UploadedDocument[] = validFiles.map((file) => ({
       id: Date.now().toString() + file.name,
       name: file.name,
       size: (file.size / 1024).toFixed(2) + " KB",
@@ -136,7 +157,7 @@ export function ChatArea({
     setDocuments([...documents, ...newDocuments]);
 
     // Upload to backend
-    for (const file of Array.from(files)) {
+    for (const file of validFiles) {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("chat_id", currentChat?.id || "default-chat");
@@ -152,6 +173,9 @@ export function ChatArea({
         // Optionally handle error state here (e.g., mark document as failed)
       }
     }
+
+    // Reset input
+    e.target.value = "";
   };
 
   const handleRemoveDocument = (docId: string) => {
