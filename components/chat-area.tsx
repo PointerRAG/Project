@@ -31,7 +31,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 // Import shared types
 import type { Chat as ChatModel, Message } from "@/lib/types";
-import { sendMessageAction, uploadDocumentAction } from "@/lib/actions/chat";
+import { sendMessageAction, uploadDocumentAction, deleteDocumentAction } from "@/lib/actions/chat";
 import { toast } from "sonner";
 
 interface ChatAreaProps {
@@ -47,6 +47,7 @@ interface UploadedDocument {
   id: string;
   name: string;
   size: string;
+  filename: string;
 }
 
 export function ChatArea({
@@ -152,6 +153,7 @@ export function ChatArea({
       id: Date.now().toString() + file.name,
       name: file.name,
       size: (file.size / 1024).toFixed(2) + " KB",
+      filename: file.name,
     }));
 
     setDocuments([...documents, ...newDocuments]);
@@ -178,8 +180,19 @@ export function ChatArea({
     e.target.value = "";
   };
 
-  const handleRemoveDocument = (docId: string) => {
-    setDocuments(documents.filter((doc) => doc.id !== docId));
+  const handleRemoveDocument = async (docId: string) => {
+    const doc = documents.find((d) => d.id === docId);
+    // Remove from UI immediately
+    setDocuments(documents.filter((d) => d.id !== docId));
+    // Delete from backend collection
+    if (doc && currentChat) {
+      try {
+        await deleteDocumentAction(currentChat.id, doc.filename);
+        router.refresh();
+      } catch (error) {
+        console.error("Failed to delete document from collection:", error);
+      }
+    }
   };
 
   if (!currentChat) {

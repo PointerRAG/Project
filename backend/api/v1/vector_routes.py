@@ -216,3 +216,34 @@ async def get_collection_stats(
             status_code=500,
             detail=f"Failed to get stats: {str(e)}"
         )
+
+
+@router.delete(
+    "/document/{chat_id}",
+    summary="Delete all chunks for a specific document",
+    description="Delete all chunks belonging to a specific file from a chat collection."
+)
+async def delete_document_by_filename(
+    chat_id: str,
+    filename: str,
+    service: VectorService = Depends(get_service),
+):
+    """
+    Delete all vector chunks for a given filename from a chat collection.
+
+    - **chat_id**: UUID of the chat session
+    - **filename**: The original filename as stored in chunk metadata
+    """
+    try:
+        result = service.delete_documents_by_filename(chat_id, filename)
+        if not result.get("success"):
+            raise HTTPException(status_code=500, detail=result.get("error", "Deletion failed"))
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Delete document error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to delete document: {str(e)}"
+        )

@@ -193,3 +193,44 @@ export async function uploadDocumentAction(formData: FormData) {
   revalidatePath("/chat");
   return { success: true, result };
 }
+
+export async function deleteDocumentAction(chatId: string, filename: string) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
+    throw new Error("Unauthorized");
+  }
+
+  // Verify chat ownership
+  const chat = await prisma.chat.findUnique({
+    where: { id: chatId },
+  });
+
+  if (!chat || chat.userId !== session.user.id) {
+    throw new Error("Chat not found or unauthorized");
+  }
+
+  // Tell the Python backend to delete all chunks for this filename
+  const url = `${BACKEND_API_BASE}/vector/document/${chatId}?filename=${encodeURIComponent(filename)}`;
+  const response = await fetch(url, { method: "DELETE" });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error("Python delete error:", errText);
+    throw new Error(`Backend deletion failed: ${errText}`);
+  }
+
+  // Decrement document count in Prisma (floor at 0)
+  await prisma.chat.update({
+    where: { id: chatId },
+    data: {
+      documentCount: { decrement: 1 },
+      updatedAt: new Date(),
+    },
+  });
+
+  revalidatePath("/chat");
+  return { success: true };
+}

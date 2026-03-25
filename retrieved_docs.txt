@@ -1,8 +1,2 @@
-Query: what are the common symptoms of diabetes?
-
---- Document 1 ---
-Clinical Features and Complications Common symptoms of diabetes include polyuria, polydipsia, polyphagia, unexplained weight loss, and fatigue. Patients may also experience blurred vision, slow wound healing, and recurrent infections. Acute complications include diabetic ketoacidosis and hyperosmolar hyperglycemic state, both of which are medical emergencies. Long-term complications are divided into microvascular complications such as retinopathy, nephropathy, and neuropathy, and macrovascular complications including coronary artery disease and stroke. Regular screening and early intervention can significantly delay the progression of these complications.
-
---- Document 2 ---
-Types of Diabetes Mellitus Type 1 diabetes mellitus is an autoimmune condition resulting in the destruction of insulin-producing beta cells of the pancreas. It typically presents in childhood or adolescence, although adult-onset cases are increasingly recognized. Patients require lifelong insulin therapy for survival. Type 2 diabetes mellitus is the most common form and is characterized by insulin resistance and relative insulin deficiency. Genetic predisposition combined with lifestyle factors such as obesity and physical inactivity play a major role. Gestational diabetes occurs during pregnancy and increases the risk of future type 2 diabetes for both mother and child. Other less common forms include monogenic diabetes, pancreatic diabetes, and drug-induced diabetes.
+Query: where is london
 

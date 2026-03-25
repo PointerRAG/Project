@@ -232,6 +232,35 @@ class VectorService:
                 success=False,
                 message=f"Failed to delete collection: {str(e)}"
             )
+
+    def delete_documents_by_filename(self, chat_id: str, filename: str) -> Dict[str, Any]:
+        """
+        Delete all chunks belonging to a specific file from a chat collection.
+
+        Args:
+            chat_id: UUID of the chat session.
+            filename: The original file name used during ingestion (stored in metadata as file_name).
+
+        Returns:
+            Dictionary with success status and deleted count.
+        """
+        collection = self.get_collection(chat_id)
+        try:
+            # ChromaDB supports metadata filtering via the 'where' clause
+            results = collection.get(
+                where={"file_name": {"$eq": filename}},
+                include=[]
+            )
+            chunk_ids = results.get("ids", [])
+            if chunk_ids:
+                collection.delete(ids=chunk_ids)
+                logger.info(f"Deleted {len(chunk_ids)} chunks for file '{filename}' from chat {chat_id}")
+            else:
+                logger.info(f"No chunks found for file '{filename}' in chat {chat_id}")
+            return {"success": True, "deleted_chunks": len(chunk_ids)}
+        except Exception as e:
+            logger.error(f"Error deleting documents for file '{filename}' in chat {chat_id}: {e}")
+            return {"success": False, "deleted_chunks": 0, "error": str(e)}
     
     def collection_exists(self, chat_id: str) -> bool:
         """
