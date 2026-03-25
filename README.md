@@ -8,10 +8,10 @@ PointerRAG is a Retrieval-Augmented Generation (RAG) system that allows users to
 - **Persistent History**: Chat sessions and messages are saved in PostgreSQL.
 - **Document Ingestion**: Upload PDF, TXT, and Markdown files with structural preservation using block-level text extraction.
 - **RAG Pipeline**:
-  - Automatic text chunking, embedding, and context cleaning.
-  - Vector search using ChromaDB, which automatically logs the top 3 retrieved contexts to `retrieved_docs.txt` on queries.
+  - Automatic text chunking, context cleaning, and generation of dense vector embeddings using `BAAI/bge-base-en-v1.5`.
+  - Vector search using ChromaDB, paired with a CrossEncoder (`ms-marco-MiniLM`) reranking layer that strictly filters irrelevant context to prevent AI hallucinations.
   - Post-processing layer to format numbered lists and improve structural clarity for generated responses.
-  - Generative AI via a local Pointer-Generator Network (T5-based, loaded from `checkpoint-1876`).
+  - Generative AI via a highly optimized local Pointer-Generator Network (T5-based) featuring encoder-output caching for ultra-low latency inference and extended target limits to prevent output truncation.
 - **Backend API**: Fast and scalable API built with FastAPI.
 
 ## Tech Stack
@@ -28,7 +28,7 @@ PointerRAG is a Retrieval-Augmented Generation (RAG) system that allows users to
 - **Primary Database**: **PostgreSQL** (Chat History)
 - **Vector Database**: [ChromaDB](https://www.trychroma.com/) (Document Embeddings)
 - **ORM/Database**: SQLAlchemy (Python) & Prisma (Schema Management)
-- **Embeddings**: `all-MiniLM-L6-v2` (via Sentence Transformers)
+- **Embeddings**: `BAAI/bge-base-en-v1.5` (via Sentence Transformers)
 - **PDF Processing**: PyMuPDF (fitz)
 
 ---
