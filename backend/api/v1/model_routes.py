@@ -74,7 +74,7 @@ def generate_answer(request: GenerateRequest) -> Dict[str, Any]:
             generation_service = get_generation_service()
             ai_content = generation_service.generate_answer(request.query, context_str)
         else:
-            ai_content = "I couldn't find any documents context relevant to your question."
+            ai_content = "I do not have enough relevant context to answer this query."
 
         return {"answer": ai_content}
     except Exception as e:

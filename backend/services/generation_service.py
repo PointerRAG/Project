@@ -15,7 +15,7 @@ class PointerGeneratorConfig:
     base_model_name: str = "t5-base"
     gate_hidden_size: int = 512
     max_input_length: int = 512
-    max_target_length: int = 64
+    max_target_length: int = 256
     copy_loss_weight: float = 0.0
 
 class PointerGeneratorGate(nn.Module):
@@ -104,6 +104,7 @@ class T5PointerGeneratorNetwork(nn.Module):
         labels: Optional[torch.Tensor] = None,
         decoder_input_ids: Optional[torch.Tensor] = None,
         decoder_attention_mask: Optional[torch.Tensor] = None,
+        encoder_outputs=None,
     ) -> Dict[str, torch.Tensor]:
         batch_size = input_ids.size(0)
 
@@ -113,10 +114,11 @@ class T5PointerGeneratorNetwork(nn.Module):
             decoder_input_ids = self.t5._shift_right(shifted_labels)
 
         t5_outputs = self.t5(
-            input_ids=input_ids,
+            input_ids=input_ids if encoder_outputs is None else None,
             attention_mask=attention_mask,
             decoder_input_ids=decoder_input_ids,
             decoder_attention_mask=decoder_attention_mask,
+            encoder_outputs=encoder_outputs,
             output_attentions=True,
             output_hidden_states=True,
             return_dict=True,
@@ -214,11 +216,18 @@ class GenerationService:
         generated_tokens = []
 
         with torch.no_grad():
+            encoder_outputs = self._model.t5.encoder(
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                return_dict=True
+            )
+
             for _ in range(self._config.max_target_length):
                 outputs = self._model(
                     input_ids=input_ids,
                     attention_mask=attention_mask,
-                    decoder_input_ids=decoder_input_ids
+                    decoder_input_ids=decoder_input_ids,
+                    encoder_outputs=encoder_outputs
                 )
 
                 final_dist = torch.exp(outputs["logits"][:, -1, :])

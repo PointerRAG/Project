@@ -39,8 +39,11 @@ class RerankService:
         doc_score_pairs = list(zip(documents, scores))
         doc_score_pairs.sort(key=lambda x: x[1], reverse=True)
         
+        # Filter out irrelevant documents (score < 0.0)
+        filtered_docs = [doc for doc, score in doc_score_pairs if score >= 0.0]
+        
         # Return top K documents
-        return [doc for doc, score in doc_score_pairs[:top_k]]
+        return filtered_docs[:top_k]
 
 # Singleton instance
 _rerank_service = None
