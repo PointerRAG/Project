@@ -389,44 +389,46 @@ export function ChatArea({
         )}
       </ChatMessages>
 
-      <ChatToolbar className="border-t border-border bg-card px-2 md:px-4">
-        <ChatToolbarAddon align="inline-start">
-          <ChatToolbarButton
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            aria-label="Attach document"
-          >
-            <Paperclip className="size-4" />
-          </ChatToolbarButton>
-        </ChatToolbarAddon>
+      <div className="border-t border-border bg-card">
+        <ChatToolbar className="px-2 md:px-4">
+          <ChatToolbarAddon align="inline-start">
+            <ChatToolbarButton
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              aria-label="Attach document"
+            >
+              <Paperclip className="size-4" />
+            </ChatToolbarButton>
+          </ChatToolbarAddon>
 
-        <ChatToolbarTextarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onSubmit={handleSend}
-          disabled={isGenerating}
-          placeholder={
-            isGenerating
-              ? "AI is generating..."
-              : "Type your message... (Shift+Enter for new line)"
-          }
-          className="max-h-50 bg-background"
-        />
+          <ChatToolbarTextarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onSubmit={handleSend}
+            disabled={isGenerating}
+            placeholder={
+              isGenerating
+                ? "AI is generating..."
+                : "Type your message... (Shift+Enter for new line)"
+            }
+            className="max-h-50 bg-background"
+          />
 
-        <ChatToolbarAddon align="inline-end">
-          <ChatToolbarButton
-            onClick={handleSend}
-            disabled={!input.trim() || isGenerating}
-            aria-label="Send message"
-          >
-            <Send className="size-4" />
-          </ChatToolbarButton>
-        </ChatToolbarAddon>
-      </ChatToolbar>
+          <ChatToolbarAddon align="inline-end">
+            <ChatToolbarButton
+              onClick={handleSend}
+              disabled={!input.trim() || isGenerating}
+              aria-label="Send message"
+            >
+              <Send className="size-4" />
+            </ChatToolbarButton>
+          </ChatToolbarAddon>
+        </ChatToolbar>
 
-      <p className="px-4 pb-2 text-center text-xs text-muted-foreground md:px-6">
-        AI can make mistakes. Verify important information.
-      </p>
+        <p className="px-4 pb-2 text-center text-xs text-muted-foreground md:px-6">
+          AI can make mistakes. Verify important information.
+        </p>
+      </div>
     </ChatLayout>
   );
 }

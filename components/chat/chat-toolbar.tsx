@@ -70,7 +70,7 @@ export function ChatToolbar({
     >
       <div
         className={cn(
-          "border rounded-md py-2 px-3",
+          "py-2 px-3",
           "flex flex-wrap items-start gap-x-2",
         )}
       >
