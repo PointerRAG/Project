@@ -396,8 +396,9 @@ export function ChatArea({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               aria-label="Attach document"
+              className="text-muted-foreground hover:bg-transparent"
             >
-              <Paperclip className="size-4" />
+              <Paperclip className="size-5 left-1 relative" strokeWidth={1.8} />
             </ChatToolbarButton>
           </ChatToolbarAddon>
 
@@ -409,9 +410,9 @@ export function ChatArea({
             placeholder={
               isGenerating
                 ? "AI is generating..."
-                : "Type your message... (Shift+Enter for new line)"
+                : "Ask me anything..."
             }
-            className="max-h-50 bg-background"
+            className="max-h-50 bg-background text-base h-[36px] items-center my-auto ml-2"
           />
 
           <ChatToolbarAddon align="inline-end">
@@ -419,8 +420,9 @@ export function ChatArea({
               onClick={handleSend}
               disabled={!input.trim() || isGenerating}
               aria-label="Send message"
+              className="size-9 rounded-xl bg-[#ced4e0] hover:bg-[#b0bac9] text-white disabled:bg-muted disabled:text-muted-foreground mr-0.5"
             >
-              <Send className="size-4" />
+              <Send className="size-[18px] ml-0.5" strokeWidth={2} />
             </ChatToolbarButton>
           </ChatToolbarAddon>
         </ChatToolbar>
