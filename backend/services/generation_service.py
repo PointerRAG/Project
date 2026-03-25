@@ -165,7 +165,6 @@ class GenerationService:
     def __init__(self):
         self._model = None
         self._tokenizer = None
-        self._punctuation_model = None
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._config = PointerGeneratorConfig()
 
@@ -189,13 +188,9 @@ class GenerationService:
             self._model.to(self._device)
             self._model.eval()
 
-            logger.info("Loading Punctuation model...")
-            from deepmultilingualpunctuation import PunctuationModel
-            self._punctuation_model = PunctuationModel()
-
             logger.info("Models loaded successfully on " + str(self._device))
         except Exception as e:
-            logger.error(f"Failed to load model from checkpoint or punctuation model: {e}")
+            logger.error(f"Failed to load model from checkpoint: {e}")
             raise e
 
     def generate_answer(self, question: str, context: str) -> str:
@@ -241,13 +236,6 @@ class GenerationService:
                 )
 
         answer = self._tokenizer.decode(generated_tokens, skip_special_tokens=True)
-        
-        # Restore punctuation
-        if self._punctuation_model:
-            try:
-                answer = self._punctuation_model.restore_punctuation(answer)
-            except Exception as e:
-                logger.error(f"Punctuation restoration failed: {e}")
                 
         return answer
 
