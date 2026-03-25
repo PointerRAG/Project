@@ -19,14 +19,26 @@ def generate_answer(request: GenerateRequest) -> Dict[str, Any]:
     try:
         vector_service = get_vector_service()
         # Search for documents relevant to the query in the chat's collection
-        search_results = vector_service.search_documents(request.chat_id, request.query, top_k=3)
-        context_str = "\n\n".join([doc.text for doc in search_results.results])
+        search_results = vector_service.search_documents(request.chat_id, request.query, top_k=10)
+        
+        # Extract initial retrieved texts
+        retrieved_texts = [doc.text for doc in search_results.results]
+        
+        if retrieved_texts:
+            # Rerank down to top 3
+            from backend.services.rerank_service import get_rerank_service
+            rerank_service = get_rerank_service()
+            top_docs = rerank_service.rerank_documents(request.query, retrieved_texts, top_k=3)
+            context_str = "\n\n".join(top_docs)
+        else:
+            top_docs = []
+            context_str = ""
         
         with open("retrieved_docs.txt", "w", encoding="utf-8") as f:
             f.write(f"Query: {request.query}\n\n")
             # Write the top 3 documents to a text file for verification
-            for i, doc in enumerate(search_results.results):
-                f.write(f"--- Document {i+1} ---\n{doc.text}\n\n")
+            for i, doc in enumerate(top_docs):
+                f.write(f"--- Document {i+1} ---\n{doc}\n\n")
         
         if context_str:
             generation_service = get_generation_service()
