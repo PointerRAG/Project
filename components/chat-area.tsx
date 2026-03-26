@@ -267,7 +267,7 @@ export function ChatArea({
                 ts !== null &&
                 (nextTs === null ||
                   new Date(ts).toDateString() !==
-                    new Date(nextTs).toDateString());
+                  new Date(nextTs).toDateString());
 
               return (
                 <React.Fragment key={message.id}>
@@ -412,7 +412,7 @@ export function ChatArea({
                 ? "AI is generating..."
                 : "Ask me anything..."
             }
-            className="max-h-50 bg-background text-base h-[36px] items-center my-auto ml-2"
+            className="max-h-[200px] bg-background text-base h-[36px] my-auto ml-2"
           />
 
           <ChatToolbarAddon align="inline-end">
@@ -420,7 +420,7 @@ export function ChatArea({
               onClick={handleSend}
               disabled={!input.trim() || isGenerating}
               aria-label="Send message"
-              className="size-9 rounded-xl bg-[#ced4e0] hover:bg-[#b0bac9] text-white disabled:bg-muted disabled:text-muted-foreground mr-0.5"
+              className="size-9 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground disabled:bg-muted disabled:text-muted-foreground mr-0.5"
             >
               <Send className="size-[18px] ml-0.5" strokeWidth={2} />
             </ChatToolbarButton>
