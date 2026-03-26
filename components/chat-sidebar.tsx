@@ -317,7 +317,7 @@ export function ChatSidebar({ chats, currentUser }: ChatSidebarProps) {
                   size="default"
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground h-auto py-1"
                 >
-                  <Avatar className="rounded-sm" size="sm">
+                  <Avatar className="rounded-sm" size="default">
                     <AvatarImage src={userImage} alt={userName} />
                     <AvatarFallback className="rounded-sm bg-primary text-primary-foreground font-semibold">
                       {userInitials}
