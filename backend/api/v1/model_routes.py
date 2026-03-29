@@ -27,31 +27,18 @@ def generate_answer(request: GenerateRequest) -> Dict[str, Any]:
     """Perform RAG and generate an answer for the given query."""
     try:
         vector_service = get_vector_service()
-        # Search for documents relevant to the query in the chat's collection
+        # Single retrieval pass: fetch broader candidates, then post-process and rerank.
+        search_results = vector_service.search_documents(
+            request.chat_id,
+            request.query,
+            top_k=10,
+        )
 
-        search_results = vector_service.search_documents(request.chat_id, request.query, top_k=3)
-        
-        # Apply post-processing to each document's text beforehand
-        for doc in search_results.results:
-            doc.text = _post_process_context(doc.text)
-        
-        # Save top 3 retrieved documents to a text file
-        try:
-            with open(r"d:\pointerRAG\retrieved_docs.txt", "w", encoding="utf-8") as f:
-                f.write(f"Query: {request.query}\n")
-                f.write("="*40 + "\n\n")
-                for i, doc in enumerate(search_results.results, 1):
-                    f.write(f"--- Document {i} ---\n")
-                    f.write(f"{doc.text}\n\n")
-        except Exception as file_err:
-            logger.error(f"Failed to write retrieved docs to file: {file_err}")
-
-        context_str = "\n\n".join([doc.text for doc in search_results.results])
-
-        search_results = vector_service.search_documents(request.chat_id, request.query, top_k=10)
-        
-        # Extract initial retrieved texts
-        retrieved_texts = [doc.text for doc in search_results.results]
+        # Post-process all rerank candidates for consistency.
+        retrieved_texts = [
+            _post_process_context(doc.text)
+            for doc in search_results.results
+        ]
         
         if retrieved_texts:
             # Rerank down to top 3
@@ -63,12 +50,6 @@ def generate_answer(request: GenerateRequest) -> Dict[str, Any]:
             top_docs = []
             context_str = ""
 
-        
-        with open("retrieved_docs.txt", "w", encoding="utf-8") as f:
-            f.write(f"Query: {request.query}\n\n")
-            # Write the top 3 documents to a text file for verification
-            for i, doc in enumerate(top_docs):
-                f.write(f"--- Document {i+1} ---\n{doc}\n\n")
         
         if context_str:
             generation_service = get_generation_service()
