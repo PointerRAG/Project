@@ -44,10 +44,7 @@ export async function getChatById(
     id: m.id,
     role: m.role,
     content: m.content,
-    timestamp: new Date(m.createdAt).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
+    timestamp: new Date(m.createdAt).toISOString(),
   }));
 
   return {

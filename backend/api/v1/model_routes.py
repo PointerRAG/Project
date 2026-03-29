@@ -27,20 +27,18 @@ def generate_answer(request: GenerateRequest) -> Dict[str, Any]:
     """Perform RAG and generate an answer for the given query."""
     try:
         vector_service = get_vector_service()
-        # Search for documents relevant to the query in the chat's collection
+        # Single retrieval pass: fetch broader candidates, then post-process and rerank.
+        search_results = vector_service.search_documents(
+            request.chat_id,
+            request.query,
+            top_k=10,
+        )
 
-        search_results = vector_service.search_documents(request.chat_id, request.query, top_k=3)
-        
-        # Apply post-processing to each document's text beforehand
-        for doc in search_results.results:
-            doc.text = _post_process_context(doc.text)
-        
-        context_str = "\n\n".join([doc.text for doc in search_results.results])
-
-        search_results = vector_service.search_documents(request.chat_id, request.query, top_k=10)
-        
-        # Extract initial retrieved texts
-        retrieved_texts = [doc.text for doc in search_results.results]
+        # Post-process all rerank candidates for consistency.
+        retrieved_texts = [
+            _post_process_context(doc.text)
+            for doc in search_results.results
+        ]
         
         if retrieved_texts:
             # Rerank down to top 3

@@ -61,8 +61,6 @@ export async function deleteChatAction(chatId: string) {
   return { success: true };
 }
 
-
-
 export async function sendMessageAction(chatId: string, content: string) {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -134,10 +132,7 @@ export async function sendMessageAction(chatId: string, content: string) {
       id: aiMessage.id,
       role: aiMessage.role,
       content: aiMessage.content,
-      timestamp: new Date(aiMessage.createdAt).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      timestamp: new Date(aiMessage.createdAt).toISOString(),
     },
   };
 }

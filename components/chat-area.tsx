@@ -95,10 +95,7 @@ export function ChatArea({
       id: Date.now().toString(),
       role: "user",
       content,
-      timestamp: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      timestamp: new Date().toISOString(),
     };
 
     setLocalMessages((prev) => [...prev, optimisticMsg]);
@@ -155,18 +152,24 @@ export function ChatArea({
       return;
     }
 
-    // Show optimistic UI updates immediately
-    const newDocuments: UploadedDocument[] = validFiles.map((file) => ({
-      id: Date.now().toString() + file.name,
-      name: file.name,
-      size: (file.size / 1024).toFixed(2) + " KB",
-      filename: file.name,
+    // Show optimistic UI updates immediately and keep stable IDs for rollback.
+    const uploadQueue = validFiles.map((file, index) => ({
+      file,
+      optimisticDocument: {
+        id: `${Date.now()}-${index}-${file.name}`,
+        name: file.name,
+        size: (file.size / 1024).toFixed(2) + " KB",
+        filename: file.name,
+      } satisfies UploadedDocument,
     }));
 
-    setDocuments([...documents, ...newDocuments]);
+    setDocuments((prev) => [
+      ...prev,
+      ...uploadQueue.map((item) => item.optimisticDocument),
+    ]);
 
     // Upload to backend
-    for (const file of validFiles) {
+    for (const { file, optimisticDocument } of uploadQueue) {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("chat_id", currentChat?.id || "default-chat");
@@ -179,7 +182,11 @@ export function ChatArea({
         router.refresh();
       } catch (error) {
         console.error("Error uploading file:", error);
-        // Optionally handle error state here (e.g., mark document as failed)
+        // Remove failed document from optimistic UI.
+        setDocuments((prev) =>
+          prev.filter((d) => d.id !== optimisticDocument.id),
+        );
+        toast.error(`Failed to upload "${file.name}"`);
       }
     }
 
@@ -302,8 +309,12 @@ export function ChatArea({
         ) : (
           <div className="mx-auto flex w-full max-w-3xl flex-col gap-0.5 py-2">
             {localMessages.map((message, index, allMessages) => {
+              const prevMessage = allMessages[index - 1];
               const nextMessage = allMessages[index + 1];
               const ts = parseTimestamp(message.timestamp);
+              const prevTs = prevMessage
+                ? parseTimestamp(prevMessage.timestamp)
+                : null;
               const nextTs = nextMessage
                 ? parseTimestamp(nextMessage.timestamp)
                 : null;
@@ -311,12 +322,22 @@ export function ChatArea({
               const sameRoleAsNext = message.role === nextMessage?.role;
               const showDateDivider =
                 ts !== null &&
-                (nextTs === null ||
+                (prevTs === null ||
                   new Date(ts).toDateString() !==
-                    new Date(nextTs).toDateString());
+                    new Date(prevTs).toDateString());
 
               return (
                 <React.Fragment key={message.id}>
+                  {showDateDivider && ts !== null && (
+                    <div className="my-2 flex items-center gap-1">
+                      <Separator className="flex-1" />
+                      <span className="min-w-max text-xs font-semibold text-muted-foreground">
+                        {formatLongDate(ts)}
+                      </span>
+                      <Separator className="flex-1" />
+                    </div>
+                  )}
+
                   <div
                     className={cn(
                       "group flex gap-3 rounded-md px-2 py-1.5 hover:bg-accent/40",
@@ -386,16 +407,6 @@ export function ChatArea({
                       </div>
                     </div>
                   </div>
-
-                  {showDateDivider && ts !== null && (
-                    <div className="my-2 flex items-center gap-1">
-                      <Separator className="flex-1" />
-                      <span className="min-w-max text-xs font-semibold text-muted-foreground">
-                        {formatLongDate(ts)}
-                      </span>
-                      <Separator className="flex-1" />
-                    </div>
-                  )}
                 </React.Fragment>
               );
             })}
