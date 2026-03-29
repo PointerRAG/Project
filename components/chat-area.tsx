@@ -304,7 +304,7 @@ export function ChatArea({
                 ts !== null &&
                 (nextTs === null ||
                   new Date(ts).toDateString() !==
-                    new Date(nextTs).toDateString());
+                  new Date(nextTs).toDateString());
 
               return (
                 <React.Fragment key={message.id}>
@@ -426,44 +426,48 @@ export function ChatArea({
         )}
       </ChatMessages>
 
-      <ChatToolbar className="border-t border-border bg-card px-2 md:px-4">
-        <ChatToolbarAddon align="inline-start">
-          <ChatToolbarButton
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            aria-label="Attach document"
-          >
-            <Paperclip className="size-4" />
-          </ChatToolbarButton>
-        </ChatToolbarAddon>
+      <div className="border-t border-border bg-card">
+        <ChatToolbar className="px-2 md:px-4">
+          <ChatToolbarAddon align="inline-start">
+            <ChatToolbarButton
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              aria-label="Attach document"
+              className="text-muted-foreground hover:bg-transparent"
+            >
+              <Paperclip className="size-5 left-1 relative" strokeWidth={1.8} />
+            </ChatToolbarButton>
+          </ChatToolbarAddon>
 
-        <ChatToolbarTextarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onSubmit={handleSend}
-          disabled={isGenerating}
-          placeholder={
-            isGenerating
-              ? "AI is generating..."
-              : "Type your message... (Shift+Enter for new line)"
-          }
-          className="max-h-50 bg-background"
-        />
+          <ChatToolbarTextarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onSubmit={handleSend}
+            disabled={isGenerating}
+            placeholder={
+              isGenerating
+                ? "AI is generating..."
+                : "Ask me anything..."
+            }
+            className="max-h-[200px] bg-background text-base h-[36px] my-auto ml-2"
+          />
 
-        <ChatToolbarAddon align="inline-end">
-          <ChatToolbarButton
-            onClick={handleSend}
-            disabled={!input.trim() || isGenerating}
-            aria-label="Send message"
-          >
-            <Send className="size-4" />
-          </ChatToolbarButton>
-        </ChatToolbarAddon>
-      </ChatToolbar>
+          <ChatToolbarAddon align="inline-end">
+            <ChatToolbarButton
+              onClick={handleSend}
+              disabled={!input.trim() || isGenerating}
+              aria-label="Send message"
+              className="size-9 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground disabled:bg-muted disabled:text-muted-foreground mr-0.5"
+            >
+              <Send className="size-[18px] ml-0.5" strokeWidth={2} />
+            </ChatToolbarButton>
+          </ChatToolbarAddon>
+        </ChatToolbar>
 
-      <p className="px-4 pb-2 text-center text-xs text-muted-foreground md:px-6">
-        AI can make mistakes. Verify important information.
-      </p>
+        <p className="px-4 pb-2 text-center text-xs text-muted-foreground md:px-6">
+          AI can make mistakes. Verify important information.
+        </p>
+      </div>
     </ChatLayout>
   );
 }

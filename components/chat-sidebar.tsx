@@ -308,14 +308,14 @@ export function ChatSidebar({ chats, currentUser }: ChatSidebarProps) {
         </ScrollArea>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border p-4">
+      <SidebarFooter className="border-t border-sidebar-border px-4 py-2">
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton
-                  size="lg"
-                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                  size="default"
+                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground h-auto py-1"
                 >
                   <Avatar className="rounded-sm" size="default">
                     <AvatarImage src={userImage} alt={userName} />
@@ -349,6 +349,8 @@ export function ChatSidebar({ chats, currentUser }: ChatSidebarProps) {
             </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
+        {/* Spacer matching the height of the right-side disclaimer text */}
+        <div className="h-5" />
       </SidebarFooter>
     </Sidebar>
   );
