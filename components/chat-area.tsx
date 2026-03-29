@@ -5,33 +5,18 @@ import { useRouter } from "next/navigation";
 
 import { Send, FileUp, Paperclip, File, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Chat as ChatLayout } from "@/components/chat/chat";
-import {
-  ChatHeader,
-  ChatHeaderAddon,
-  ChatHeaderMain,
-} from "@/components/chat/chat-header";
-import { ChatMessages } from "@/components/chat/chat-messages";
-import {
-  ChatEvent,
-  ChatEventAddon,
-  ChatEventBody,
-  ChatEventContent,
-  ChatEventTime,
-  ChatEventTitle,
-} from "@/components/chat/chat-event";
-import {
-  ChatToolbar,
-  ChatToolbarAddon,
-  ChatToolbarButton,
-  ChatToolbarTextarea,
-} from "@/components/chat/chat-toolbar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 // Import shared types
 import type { Chat as ChatModel, Message } from "@/lib/types";
-import { sendMessageAction, uploadDocumentAction, deleteDocumentAction } from "@/lib/actions/chat";
+import {
+  sendMessageAction,
+  uploadDocumentAction,
+  deleteDocumentAction,
+} from "@/lib/actions/chat";
 import { toast } from "sonner";
 
 interface ChatAreaProps {
@@ -81,6 +66,21 @@ export function ChatArea({
     return Number.isNaN(ms) ? null : ms;
   };
 
+  const formatTime = (timestamp: number): string => {
+    return new Date(timestamp).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const formatLongDate = (timestamp: number): string => {
+    return new Date(timestamp).toLocaleDateString([], {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
   useEffect(() => {
     const container = messagesContainerRef.current;
     if (!container) return;
@@ -122,6 +122,13 @@ export function ChatArea({
     if (!input.trim()) return;
     handleSendMessage(input);
     setInput("");
+  };
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSend();
+    }
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -214,9 +221,9 @@ export function ChatArea({
   }
 
   return (
-    <ChatLayout className="min-h-0 bg-background">
-      <ChatHeader className="border-b border-border bg-card px-4 py-3 md:px-6">
-        <ChatHeaderMain>
+    <div className="flex min-h-0 flex-1 flex-col bg-background">
+      <div className="border-b border-border bg-card px-4 py-3 md:px-6">
+        <div className="flex items-center justify-between gap-3">
           <div>
             <h1 className="text-xl font-semibold text-card-foreground">
               {currentChat.title}
@@ -227,8 +234,7 @@ export function ChatArea({
                 : `${currentChat.documentCount} ${currentChat.documentCount === 1 ? "document" : "documents"} uploaded`}
             </p>
           </div>
-        </ChatHeaderMain>
-        <ChatHeaderAddon>
+
           <Button
             onClick={() => fileInputRef.current?.click()}
             variant="outline"
@@ -245,8 +251,8 @@ export function ChatArea({
             onChange={handleFileUpload}
             accept=".pdf,.doc,.docx,.txt,.md"
           />
-        </ChatHeaderAddon>
-      </ChatHeader>
+        </div>
+      </div>
 
       {documents.length > 0 && (
         <div className="border-b border-border bg-card px-4 py-3 md:px-6">
@@ -278,7 +284,10 @@ export function ChatArea({
         </div>
       )}
 
-      <ChatMessages ref={messagesContainerRef} className="min-h-0 px-4 md:px-6">
+      <div
+        ref={messagesContainerRef}
+        className="min-h-0 flex-1 overflow-y-auto px-4 pb-28 md:px-6"
+      >
         {localMessages.length === 0 ? (
           <div className="flex h-full min-h-100 flex-col items-center justify-center p-8 text-center opacity-50 select-none">
             <div className="mb-6 flex size-20 items-center justify-center rounded-3xl bg-primary/10">
@@ -304,17 +313,17 @@ export function ChatArea({
                 ts !== null &&
                 (nextTs === null ||
                   new Date(ts).toDateString() !==
-                  new Date(nextTs).toDateString());
+                    new Date(nextTs).toDateString());
 
               return (
                 <React.Fragment key={message.id}>
-                  <ChatEvent
+                  <div
                     className={cn(
-                      "group rounded-md px-2 py-1.5 hover:bg-accent/40",
+                      "group flex gap-3 rounded-md px-2 py-1.5 hover:bg-accent/40",
                       message.role === "user" && "flex-row-reverse",
                     )}
                   >
-                    <ChatEventAddon
+                    <div
                       className={cn(
                         "pt-0.5",
                         message.role === "user" && "justify-center",
@@ -339,18 +348,18 @@ export function ChatArea({
                           </AvatarFallback>
                         </Avatar>
                       )}
-                    </ChatEventAddon>
+                    </div>
 
-                    <ChatEventBody
+                    <div
                       className={cn(
-                        "max-w-[80%]",
+                        "flex max-w-[80%] flex-col",
                         message.role === "user" ? "items-end" : "items-start",
                       )}
                     >
                       {!sameRoleAsNext && (
-                        <ChatEventTitle
+                        <div
                           className={cn(
-                            "mb-1 text-xs text-muted-foreground",
+                            "mb-1 flex items-center gap-2 text-xs text-muted-foreground",
                             message.role === "user" && "flex-row-reverse",
                           )}
                         >
@@ -358,14 +367,14 @@ export function ChatArea({
                             {message.role === "assistant" ? "AI" : "You"}
                           </span>
                           {ts !== null ? (
-                            <ChatEventTime timestamp={ts} format="time" />
+                            <span>{formatTime(ts)}</span>
                           ) : (
                             <span>{message.timestamp}</span>
                           )}
-                        </ChatEventTitle>
+                        </div>
                       )}
 
-                      <ChatEventContent
+                      <div
                         className={cn(
                           "rounded-lg border px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap shadow-sm",
                           message.role === "user"
@@ -374,39 +383,37 @@ export function ChatArea({
                         )}
                       >
                         {message.content}
-                      </ChatEventContent>
-                    </ChatEventBody>
-                  </ChatEvent>
+                      </div>
+                    </div>
+                  </div>
 
                   {showDateDivider && ts !== null && (
-                    <ChatEvent className="my-2 items-center gap-1">
+                    <div className="my-2 flex items-center gap-1">
                       <Separator className="flex-1" />
-                      <ChatEventTime
-                        timestamp={ts}
-                        format="longDate"
-                        className="min-w-max text-xs font-semibold text-muted-foreground"
-                      />
+                      <span className="min-w-max text-xs font-semibold text-muted-foreground">
+                        {formatLongDate(ts)}
+                      </span>
                       <Separator className="flex-1" />
-                    </ChatEvent>
+                    </div>
                   )}
                 </React.Fragment>
               );
             })}
 
             {isGenerating && (
-              <ChatEvent className="group rounded-md px-2 py-1.5 hover:bg-accent/40 mt-2">
-                <ChatEventAddon className="pt-0.5">
+              <div className="group mt-2 flex gap-3 rounded-md px-2 py-1.5 hover:bg-accent/40">
+                <div className="pt-0.5">
                   <Avatar className="rounded-sm" size="default">
                     <AvatarFallback className="rounded-sm text-sm font-semibold bg-primary text-primary-foreground">
                       AI
                     </AvatarFallback>
                   </Avatar>
-                </ChatEventAddon>
-                <ChatEventBody className="items-start max-w-[80%]">
-                  <ChatEventTitle className="mb-1 text-xs text-muted-foreground">
+                </div>
+                <div className="flex max-w-[80%] flex-col items-start">
+                  <div className="mb-1 text-xs text-muted-foreground">
                     <span className="font-medium">AI</span>
-                  </ChatEventTitle>
-                  <ChatEventContent className="rounded-lg border px-5 py-4 text-sm leading-relaxed shadow-sm bg-card">
+                  </div>
+                  <div className="rounded-lg border bg-card px-5 py-4 text-sm leading-relaxed shadow-sm">
                     <div className="flex space-x-1 items-center h-4">
                       <div
                         className="w-1.5 h-1.5 bg-foreground/40 rounded-full animate-bounce"
@@ -418,56 +425,57 @@ export function ChatArea({
                       ></div>
                       <div className="w-1.5 h-1.5 bg-foreground/40 rounded-full animate-bounce"></div>
                     </div>
-                  </ChatEventContent>
-                </ChatEventBody>
-              </ChatEvent>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         )}
-      </ChatMessages>
+      </div>
 
-      <div className="border-t border-border bg-card">
-        <ChatToolbar className="px-2 md:px-4">
-          <ChatToolbarAddon align="inline-start">
-            <ChatToolbarButton
+      <div className="sticky bottom-0 z-20 bg-background px-2 pb-3 pt-2 backdrop-blur md:px-4">
+        <Card className="mx-auto w-full max-w-3xl gap-0 rounded-4xl border-0 bg-card py-3 shadow-xl">
+          <div className="px-3 md:px-5">
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleInputKeyDown}
+              disabled={isGenerating}
+              placeholder={
+                isGenerating ? "AI is generating..." : "Ask me anything..."
+              }
+              className="h-10 border-0 bg-card dark:bg-card px-0 text-2xl shadow-none focus-visible:border-0 focus-visible:ring-0 focus-visible:outline-none"
+            />
+          </div>
+
+          <div className="mt-2 flex items-center justify-between gap-2 px-3 md:px-5">
+            <Button
               type="button"
+              variant="outline"
               onClick={() => fileInputRef.current?.click()}
               aria-label="Attach document"
-              className="text-muted-foreground hover:bg-transparent"
+              className="h-11 rounded-full px-4"
             >
-              <Paperclip className="size-5 left-1 relative" strokeWidth={1.8} />
-            </ChatToolbarButton>
-          </ChatToolbarAddon>
+              <Paperclip className="size-4" strokeWidth={1.8} />
+              Attach
+            </Button>
 
-          <ChatToolbarTextarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onSubmit={handleSend}
-            disabled={isGenerating}
-            placeholder={
-              isGenerating
-                ? "AI is generating..."
-                : "Ask me anything..."
-            }
-            className="max-h-[200px] bg-background text-base h-[36px] my-auto ml-2"
-          />
-
-          <ChatToolbarAddon align="inline-end">
-            <ChatToolbarButton
+            <Button
               onClick={handleSend}
               disabled={!input.trim() || isGenerating}
               aria-label="Send message"
-              className="size-9 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground disabled:bg-muted disabled:text-muted-foreground mr-0.5"
+              size="icon"
+              className="size-11 rounded-full"
             >
-              <Send className="size-[18px] ml-0.5" strokeWidth={2} />
-            </ChatToolbarButton>
-          </ChatToolbarAddon>
-        </ChatToolbar>
+              <Send className="size-4.5" />
+            </Button>
+          </div>
+        </Card>
 
-        <p className="px-4 pb-2 text-center text-xs text-muted-foreground md:px-6">
+        <p className="px-4 pt-3 text-center text-xs text-muted-foreground md:px-6">
           AI can make mistakes. Verify important information.
         </p>
       </div>
-    </ChatLayout>
+    </div>
   );
 }
