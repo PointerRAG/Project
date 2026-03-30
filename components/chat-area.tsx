@@ -19,6 +19,29 @@ import {
 } from "@/lib/actions/chat";
 import { toast } from "sonner";
 
+const STABLE_LOCALE = "en-IN";
+const STABLE_TIME_ZONE = "Asia/Kolkata";
+
+const stableTimeFormatter = new Intl.DateTimeFormat(STABLE_LOCALE, {
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZone: STABLE_TIME_ZONE,
+});
+
+const stableDateFormatter = new Intl.DateTimeFormat(STABLE_LOCALE, {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+  timeZone: STABLE_TIME_ZONE,
+});
+
+const stableDayKeyFormatter = new Intl.DateTimeFormat(STABLE_LOCALE, {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  timeZone: STABLE_TIME_ZONE,
+});
+
 interface ChatAreaProps {
   currentChat: ChatModel | undefined;
   messages: Message[];
@@ -66,19 +89,25 @@ export function ChatArea({
     return Number.isNaN(ms) ? null : ms;
   };
 
+  const getStableDayKey = (timestamp: number): string => {
+    const parts = stableDayKeyFormatter.formatToParts(new Date(timestamp));
+    const year = parts.find((part) => part.type === "year")?.value;
+    const month = parts.find((part) => part.type === "month")?.value;
+    const day = parts.find((part) => part.type === "day")?.value;
+
+    if (!year || !month || !day) {
+      return "";
+    }
+
+    return `${year}-${month}-${day}`;
+  };
+
   const formatTime = (timestamp: number): string => {
-    return new Date(timestamp).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    return stableTimeFormatter.format(new Date(timestamp));
   };
 
   const formatLongDate = (timestamp: number): string => {
-    return new Date(timestamp).toLocaleDateString([], {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+    return stableDateFormatter.format(new Date(timestamp));
   };
 
   useEffect(() => {
@@ -323,8 +352,7 @@ export function ChatArea({
               const showDateDivider =
                 ts !== null &&
                 (prevTs === null ||
-                  new Date(ts).toDateString() !==
-                    new Date(prevTs).toDateString());
+                  getStableDayKey(ts) !== getStableDayKey(prevTs));
 
               return (
                 <React.Fragment key={message.id}>
