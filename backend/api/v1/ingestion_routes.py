@@ -3,9 +3,8 @@ Ingestion API routes for document upload and processing.
 Provides endpoint for file upload, parsing, chunking, and storage.
 """
 import logging
-from typing import Optional
 
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends, Header
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 
 from datetime import datetime
 from ...schemas.ingestion import IngestResponse, IngestError
@@ -27,27 +26,6 @@ router = APIRouter(prefix="/ingest", tags=["Document Ingestion"])
 def get_service() -> IngestionService:
     """Dependency to get ingestion service instance."""
     return get_ingestion_service()
-
-
-async def verify_user_access(
-    chat_id: str,
-    x_user_id: Optional[str] = Header(None, alias="X-User-Id")
-) -> bool:
-    """
-    Middleware stub for user authentication.
-    In production, verify the userId from Better Auth owns the chat_id.
-    
-    Args:
-        chat_id: The chat ID being accessed.
-        x_user_id: User ID from request header.
-        
-    Returns:
-        True if access is allowed.
-    """
-    # TODO: Implement actual user verification with Better Auth
-    if x_user_id:
-        logger.debug(f"User {x_user_id} ingesting to chat {chat_id}")
-    return True
 
 
 @router.post(
@@ -96,9 +74,6 @@ async def ingest_document(
             }
         )
     
-    # Verify user access (stubbed for now)
-    await verify_user_access(chat_id)
-
     try:
         # Read file content with size check
         file_bytes = await file.read()

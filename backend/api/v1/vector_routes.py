@@ -3,9 +3,8 @@ Vector API routes for RAG operations.
 Provides endpoints for search, document management, and cleanup.
 """
 import logging
-from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Header, Depends
+from fastapi import APIRouter, HTTPException, Depends
 
 from ...schemas.vector import (
     SearchRequest,
@@ -26,32 +25,6 @@ router = APIRouter(prefix="/vector", tags=["Vector Operations"])
 def get_service() -> VectorService:
     """Dependency to get vector service instance."""
     return get_vector_service()
-
-
-async def verify_user_access(
-    chat_id: str,
-    x_user_id: Optional[str] = Header(None, alias="X-User-Id")
-) -> bool:
-    """
-    Middleware stub for user authentication.
-    In production, this would verify the userId from Better Auth
-    actually owns the chat_id they are trying to access.
-    
-    Args:
-        chat_id: The chat ID being accessed.
-        x_user_id: User ID from request header.
-        
-    Returns:
-        True if access is allowed.
-        
-    Raises:
-        HTTPException: If access is denied.
-    """
-    # TODO: Implement actual user verification with Better Auth
-    # For now, allow all access (development mode)
-    if x_user_id:
-        logger.debug(f"User {x_user_id} accessing chat {chat_id}")
-    return True
 
 
 @router.post(
@@ -76,9 +49,6 @@ async def search_documents(
     - **top_k**: Number of results to return (default: 5, max: 50)
     """
     try:
-        # Verify user access (stubbed for now)
-        await verify_user_access(request.chat_id)
-        
         # Perform search
         result = service.search_documents(
             chat_id=request.chat_id,
@@ -117,9 +87,6 @@ async def add_documents(
     - **documents**: List of documents with text and metadata
     """
     try:
-        # Verify user access (stubbed for now)
-        await verify_user_access(request.chat_id)
-        
         # Extract texts, metadatas, and optional IDs
         texts = [doc.text for doc in request.documents]
         metadatas = [doc.metadata.model_dump() for doc in request.documents]
@@ -170,9 +137,6 @@ async def delete_chat_collection(
     - **chat_id**: UUID of the chat session to delete
     """
     try:
-        # Verify user access (stubbed for now)
-        await verify_user_access(chat_id)
-        
         # Delete collection
         result = service.delete_collection(chat_id)
         
