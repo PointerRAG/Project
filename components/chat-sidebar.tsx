@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -8,7 +9,6 @@ import {
   Search,
   MoreVertical,
   Trash2,
-  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,7 +45,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { formatChatSidebarDate } from "@/lib/date-format";
 import type { Chat } from "@/lib/types";
 import { ModeToggle } from "@/components/mode-toggle";
 import { authClient } from "@/lib/auth-client";
@@ -145,13 +151,17 @@ export function ChatSidebar({ chats, currentUser }: ChatSidebarProps) {
   const userInitials = `${firstInitial}${lastInitial}`.toUpperCase();
 
   return (
-    <Sidebar collapsible="none" className="border-r border-sidebar-border">
+    <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border p-4">
         <div className="flex items-center justify-between gap-2 mb-4">
           <div className="flex items-center gap-2">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-primary">
-              <Sparkles className="size-4 text-primary-foreground" />
-            </div>
+            <Image
+              src="/icon.png"
+              alt="Pointer RAG"
+              width={32}
+              height={32}
+              className="size-8 object-contain"
+            />
             <span className="text-lg font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">
               Pointer RAG
             </span>
@@ -243,36 +253,43 @@ export function ChatSidebar({ chats, currentUser }: ChatSidebarProps) {
               <SidebarMenu>
                 {filteredChats.map((chat) => (
                   <SidebarMenuItem key={chat.id}>
-                    <SidebarMenuButton
-                      isActive={currentChatId === chat.id}
-                      onClick={() => router.push(`/chat/${chat.id}`)}
-                      className={cn(
-                        "h-auto items-start gap-1.5 p-3",
-                        "group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0",
-                      )}
-                    >
-                      <div className="flex w-full items-start justify-between gap-2 group-data-[collapsible=icon]:justify-center">
-                        <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-                          <p className="truncate font-medium text-sm text-sidebar-foreground">
-                            {chat.title}
-                          </p>
-                        </div>
-                        <div className="hidden group-data-[collapsible=icon]:block">
-                          <div className="flex size-6 items-center justify-center rounded-md bg-primary/10 text-primary text-xs font-medium">
-                            {chat.title.charAt(0).toUpperCase()}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton
+                          isActive={currentChatId === chat.id}
+                          onClick={() => router.push(`/chat/${chat.id}`)}
+                          className={cn(
+                            "h-auto items-start gap-1.5 p-3",
+                            "group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0",
+                          )}
+                        >
+                          <div className="flex w-full items-start justify-between gap-2 group-data-[collapsible=icon]:justify-center">
+                            <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
+                              <p className="truncate font-medium text-sm text-sidebar-foreground">
+                                {chat.title}
+                              </p>
+                            </div>
+                            <div className="hidden group-data-[collapsible=icon]:block">
+                              <div className="flex size-6 items-center justify-center rounded-md bg-primary/10 text-primary text-xs font-medium">
+                                {chat.title.charAt(0).toUpperCase()}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                      <div className="flex w-full items-center justify-between text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
-                        <span>{chat.timestamp}</span>
-                        {chat.documentCount > 0 && (
-                          <SidebarMenuBadge className="static h-auto min-w-0 px-2 py-0.5 text-[10px] text-primary">
-                            {chat.documentCount}{" "}
-                            {chat.documentCount === 1 ? "doc" : "docs"}
-                          </SidebarMenuBadge>
-                        )}
-                      </div>
-                    </SidebarMenuButton>
+
+                          {chat.documentCount > 0 && (
+                            <div className="flex w-full items-center justify-end text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
+                              <SidebarMenuBadge className="static h-auto min-w-0 px-2 py-0.5 text-[10px] text-primary">
+                                {chat.documentCount}{" "}
+                                {chat.documentCount === 1 ? "doc" : "docs"}
+                              </SidebarMenuBadge>
+                            </div>
+                          )}
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" sideOffset={8}>
+                        {formatChatSidebarDate(chat.timestamp)}
+                      </TooltipContent>
+                    </Tooltip>
 
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -284,7 +301,7 @@ export function ChatSidebar({ chats, currentUser }: ChatSidebarProps) {
                           <MoreVertical className="size-4" />
                         </SidebarMenuAction>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent align="start">
                         <DropdownMenuItem
                           onClick={(e) => {
                             e.stopPropagation();
@@ -293,7 +310,7 @@ export function ChatSidebar({ chats, currentUser }: ChatSidebarProps) {
                           disabled={isDeletingChatId === chat.id}
                           className="text-destructive focus:text-destructive"
                         >
-                          <Trash2 className="mr-2 size-4" />
+                          <Trash2 className="mr-2 size-4 text-destructive focus:text-destructive" />
                           {isDeletingChatId === chat.id
                             ? "Deleting..."
                             : "Delete"}

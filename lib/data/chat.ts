@@ -16,7 +16,7 @@ export async function getUserChats(userId: string): Promise<Chat[]> {
   return chats.map((c: any) => ({
     id: c.id,
     title: c.title,
-    timestamp: new Date(c.updatedAt).toLocaleDateString(),
+    timestamp: new Date(c.updatedAt).toISOString(),
     documentCount: c.documentCount,
     lastMessage: c.messages.length > 0 ? c.messages[0].content : null,
     messages: [],
@@ -52,7 +52,7 @@ export async function getChatById(
     title: chat.title,
     lastMessage:
       messages.length > 0 ? messages[messages.length - 1].content : null,
-    timestamp: new Date(chat.updatedAt).toLocaleDateString(),
+    timestamp: new Date(chat.updatedAt).toISOString(),
     documentCount: chat.documentCount,
     messages,
   };

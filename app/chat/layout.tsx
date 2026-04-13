@@ -5,9 +5,6 @@ import { headers } from "next/headers";
 import { getUserChats } from "@/lib/data/chat";
 import { redirect } from "next/navigation";
 
-// Sidebar width configuration matching the original ChatInterface
-const SIDEBAR_WIDTH = "300px";
-
 export default async function ChatLayout({
   children,
 }: {
@@ -26,25 +23,16 @@ export default async function ChatLayout({
   const initialChats = await getUserChats(session.user.id);
 
   return (
-    <SidebarProvider
-      defaultOpen
-      style={
-        {
-          "--sidebar-width": SIDEBAR_WIDTH,
-        } as React.CSSProperties
-      }
-    >
+    <SidebarProvider defaultOpen>
       <div className="flex h-dvh min-h-0 w-full overflow-hidden bg-background">
-        <div className="relative h-full w-(--sidebar-width) shrink-0">
-          <ChatSidebar
-            chats={initialChats}
-            currentUser={{
-              name: session.user.name,
-              email: session.user.email,
-              image: session.user.image,
-            }}
-          />
-        </div>
+        <ChatSidebar
+          chats={initialChats}
+          currentUser={{
+            name: session.user.name,
+            email: session.user.email,
+            image: session.user.image,
+          }}
+        />
         <SidebarInset className="min-h-0 min-w-0 flex-1 overflow-hidden">
           {children}
         </SidebarInset>

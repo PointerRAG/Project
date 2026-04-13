@@ -3,34 +3,44 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function Loading() {
   return (
     <div className="flex h-dvh min-h-0 w-full overflow-hidden bg-background">
-      <div className="w-75 shrink-0 border-r border-sidebar-border hidden md:flex flex-col">
-        <div className="p-4 border-b border-sidebar-border">
-          <Skeleton className="h-10 w-full rounded-md" />
-        </div>
-        <div className="p-4 flex flex-col gap-2">
-          <Skeleton className="h-12 w-full rounded-md bg-sidebar-accent/50" />
-          <Skeleton className="h-12 w-full rounded-md bg-sidebar-accent/50" />
-          <Skeleton className="h-12 w-full rounded-md bg-sidebar-accent/50" />
-          <Skeleton className="h-12 w-full rounded-md bg-sidebar-accent/50" />
-        </div>
-      </div>
-      <div className="flex-1 flex flex-col">
-        <div className="h-14 border-b border-border bg-card px-4 py-3 flex items-center">
-          <Skeleton className="h-6 w-48 rounded-md" />
-        </div>
-        <div className="flex-1 p-6 flex flex-col gap-6">
-          <div className="flex gap-4">
-            <Skeleton className="size-8 shrink-0 rounded-sm" />
-            <Skeleton className="h-16 w-[80%] rounded-lg" />
-          </div>
-          <div className="flex gap-4 flex-row-reverse">
-            <Skeleton className="size-8 shrink-0 rounded-sm" />
-            <Skeleton className="h-12 w-[60%] rounded-lg" />
+      <div className="flex min-h-0 flex-1 flex-col bg-background">
+        <div className="border-b border-border bg-card px-4 py-3 md:px-6">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0 space-y-1">
+              <Skeleton className="h-6 w-36 sm:w-56 rounded-md" />
+              <Skeleton className="h-4 w-24 sm:w-40 rounded-md" />
+            </div>
+            <Skeleton className="h-10 w-24 sm:w-40 rounded-md" />
           </div>
         </div>
-        <div className="h-14 border-t border-border bg-card px-4 py-2 flex items-center gap-2">
-          <Skeleton className="h-10 flex-1 rounded-md" />
-          <Skeleton className="size-10 rounded-md shrink-0" />
+
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-44 md:px-6 md:pb-44">
+          <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 py-4">
+            <div className="flex flex-row-reverse gap-4">
+              <Skeleton className="size-8 shrink-0 rounded-sm" />
+              <Skeleton className="h-12 w-[60%] rounded-lg" />
+            </div>
+            <div className="flex gap-4">
+              <Skeleton className="size-8 shrink-0 rounded-sm" />
+              <Skeleton className="h-16 w-[80%] rounded-lg" />
+            </div>
+            <div className="flex flex-row-reverse gap-4">
+              <Skeleton className="size-8 shrink-0 rounded-sm" />
+              <Skeleton className="h-12 w-[60%] rounded-lg" />
+            </div>
+            <div className="flex gap-4">
+              <Skeleton className="size-8 shrink-0 rounded-sm" />
+              <Skeleton className="h-16 w-[80%] rounded-lg" />
+            </div>
+          </div>
+        </div>
+
+        <div className="sticky bottom-0 z-20 bg-background px-2 pb-3 pt-2 backdrop-blur md:px-4 md:pb-3">
+          <Skeleton className="mx-auto w-full max-w-3xl min-h-25 gap-0 rounded-4xl border-0 bg-card py-3 shadow-xl"></Skeleton>
+
+          <div className="px-4 pt-3 md:px-6">
+            <Skeleton className="mx-auto h-3 w-64 rounded-md" />
+          </div>
         </div>
       </div>
     </div>

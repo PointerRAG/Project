@@ -8,8 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import {
+  formatChatLongDate,
+  formatChatTime,
+  getStableDayKey,
+  parseTimestampToMs,
+} from "@/lib/date-format";
 // Import shared types
 import type { Chat as ChatModel, Message } from "@/lib/types";
 import {
@@ -18,29 +25,6 @@ import {
   deleteDocumentAction,
 } from "@/lib/actions/chat";
 import { toast } from "sonner";
-
-const STABLE_LOCALE = "en-IN";
-const STABLE_TIME_ZONE = "Asia/Kolkata";
-
-const stableTimeFormatter = new Intl.DateTimeFormat(STABLE_LOCALE, {
-  hour: "2-digit",
-  minute: "2-digit",
-  timeZone: STABLE_TIME_ZONE,
-});
-
-const stableDateFormatter = new Intl.DateTimeFormat(STABLE_LOCALE, {
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-  timeZone: STABLE_TIME_ZONE,
-});
-
-const stableDayKeyFormatter = new Intl.DateTimeFormat(STABLE_LOCALE, {
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-  timeZone: STABLE_TIME_ZONE,
-});
 
 interface ChatAreaProps {
   currentChat: ChatModel | undefined;
@@ -83,32 +67,6 @@ export function ChatArea({
   const lastInitial =
     nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "";
   const userInitials = `${firstInitial}${lastInitial}`.toUpperCase();
-
-  const parseTimestamp = (timestamp: string): number | null => {
-    const ms = Date.parse(timestamp);
-    return Number.isNaN(ms) ? null : ms;
-  };
-
-  const getStableDayKey = (timestamp: number): string => {
-    const parts = stableDayKeyFormatter.formatToParts(new Date(timestamp));
-    const year = parts.find((part) => part.type === "year")?.value;
-    const month = parts.find((part) => part.type === "month")?.value;
-    const day = parts.find((part) => part.type === "day")?.value;
-
-    if (!year || !month || !day) {
-      return "";
-    }
-
-    return `${year}-${month}-${day}`;
-  };
-
-  const formatTime = (timestamp: number): string => {
-    return stableTimeFormatter.format(new Date(timestamp));
-  };
-
-  const formatLongDate = (timestamp: number): string => {
-    return stableDateFormatter.format(new Date(timestamp));
-  };
 
   useEffect(() => {
     const container = messagesContainerRef.current;
@@ -260,15 +218,18 @@ export function ChatArea({
     <div className="flex min-h-0 flex-1 flex-col bg-background">
       <div className="border-b border-border bg-card px-4 py-3 md:px-6">
         <div className="flex items-center justify-between gap-3">
-          <div>
-            <h1 className="text-xl font-semibold text-card-foreground">
-              {currentChat.title}
-            </h1>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              {currentChat.documentCount === 0
-                ? "No documents uploaded"
-                : `${currentChat.documentCount} ${currentChat.documentCount === 1 ? "document" : "documents"} uploaded`}
-            </p>
+          <div className="flex items-center gap-2">
+            <SidebarTrigger className="md:hidden" />
+            <div>
+              <h1 className="text-xl font-semibold text-card-foreground">
+                {currentChat.title}
+              </h1>
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                {currentChat.documentCount === 0
+                  ? "No documents uploaded"
+                  : `${currentChat.documentCount} ${currentChat.documentCount === 1 ? "document" : "documents"} uploaded`}
+              </p>
+            </div>
           </div>
 
           <Button
@@ -340,12 +301,12 @@ export function ChatArea({
             {localMessages.map((message, index, allMessages) => {
               const prevMessage = allMessages[index - 1];
               const nextMessage = allMessages[index + 1];
-              const ts = parseTimestamp(message.timestamp);
+              const ts = parseTimestampToMs(message.timestamp);
               const prevTs = prevMessage
-                ? parseTimestamp(prevMessage.timestamp)
+                ? parseTimestampToMs(prevMessage.timestamp)
                 : null;
               const nextTs = nextMessage
-                ? parseTimestamp(nextMessage.timestamp)
+                ? parseTimestampToMs(nextMessage.timestamp)
                 : null;
 
               const sameRoleAsNext = message.role === nextMessage?.role;
@@ -360,7 +321,7 @@ export function ChatArea({
                     <div className="my-2 flex items-center gap-1">
                       <Separator className="flex-1" />
                       <span className="min-w-max text-xs font-semibold text-muted-foreground">
-                        {formatLongDate(ts)}
+                        {formatChatLongDate(ts)}
                       </span>
                       <Separator className="flex-1" />
                     </div>
@@ -416,7 +377,7 @@ export function ChatArea({
                             {message.role === "assistant" ? "AI" : "You"}
                           </span>
                           {ts !== null ? (
-                            <span>{formatTime(ts)}</span>
+                            <span>{formatChatTime(ts)}</span>
                           ) : (
                             <span>{message.timestamp}</span>
                           )}
