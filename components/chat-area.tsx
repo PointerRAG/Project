@@ -25,6 +25,7 @@ import {
   deleteDocumentAction,
 } from "@/lib/actions/chat";
 import { toast } from "sonner";
+import { Greeting } from "@/components/greeting";
 
 interface ChatAreaProps {
   currentChat: ChatModel | undefined;
@@ -286,12 +287,12 @@ export function ChatArea({
         className="min-h-0 flex-1 overflow-y-auto px-4 pb-28 md:px-6"
       >
         {localMessages.length === 0 ? (
-          <div className="flex h-full min-h-100 flex-col items-center justify-center p-8 text-center opacity-50 select-none">
+          <div className="flex h-full min-h-100 flex-col items-center justify-center p-8 text-center select-none">
             <div className="mb-6 flex size-20 items-center justify-center rounded-3xl bg-primary/10">
               <FileUp className="size-10 text-primary" />
             </div>
-            <h3 className="mb-2 text-xl font-semibold">Ready to assist</h3>
-            <p className="max-w-sm text-sm text-balance">
+            <Greeting userName={userName} />
+            <p className="max-w-sm text-sm text-balance text-muted-foreground">
               Upload your documents to get started with RAG-powered analysis, or
               simply start typing to chat.
             </p>
@@ -320,7 +321,7 @@ export function ChatArea({
                   {showDateDivider && ts !== null && (
                     <div className="my-2 flex items-center gap-1">
                       <Separator className="flex-1" />
-                      <span className="min-w-max text-xs font-semibold text-muted-foreground">
+                      <span className="min-w-max text-xs font-semibold text-muted-foreground" suppressHydrationWarning>
                         {formatChatLongDate(ts)}
                       </span>
                       <Separator className="flex-1" />
@@ -377,7 +378,7 @@ export function ChatArea({
                             {message.role === "assistant" ? "AI" : "You"}
                           </span>
                           {ts !== null ? (
-                            <span>{formatChatTime(ts)}</span>
+                            <span suppressHydrationWarning>{formatChatTime(ts)}</span>
                           ) : (
                             <span>{message.timestamp}</span>
                           )}
