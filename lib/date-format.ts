@@ -17,10 +17,13 @@ const shortDateFormatter = new Intl.DateTimeFormat(APP_DATE_LOCALE, {
   day: "numeric",
 });
 
+// Pinned to UTC so the day-key is deterministic across server and client.
+// This only drives the "show date divider?" logic, not the displayed text.
 const dayKeyFormatter = new Intl.DateTimeFormat("en-CA", {
   year: "numeric",
   month: "2-digit",
   day: "2-digit",
+  timeZone: "UTC",
 });
 
 export function parseTimestampToMs(timestamp: string): number | null {

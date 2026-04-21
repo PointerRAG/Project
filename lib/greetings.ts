@@ -125,7 +125,7 @@ export function getGreeting(fullName: string): string {
 
   const alwaysGreetings = GREETINGS.filter((g) => g.condition === "always");
 
-  // If we have specific greetings, give them an 80% chance to be used over generic ones
+  // If we have specific greetings, give them an 60% chance to be used over generic ones
   // to avoid generic greetings crowding out the context-aware ones.
   const pool =
     specificGreetings.length > 0 && Math.random() < 0.6
