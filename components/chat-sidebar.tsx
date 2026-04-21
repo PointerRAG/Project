@@ -57,6 +57,7 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { authClient } from "@/lib/auth-client";
 import { useRouter, useParams } from "next/navigation";
 import { createChatAction, deleteChatAction } from "@/lib/actions/chat";
+import Link from "next/link";
 
 interface ChatSidebarProps {
   chats: Chat[];
@@ -154,7 +155,7 @@ export function ChatSidebar({ chats, currentUser }: ChatSidebarProps) {
     <Sidebar collapsible="offcanvas" className="border-r border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border p-4">
         <div className="flex items-center justify-between gap-2 mb-4">
-          <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
             <Image
               src="/icon.png"
               alt="Pointer RAG"
@@ -165,7 +166,7 @@ export function ChatSidebar({ chats, currentUser }: ChatSidebarProps) {
             <span className="text-lg font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">
               Pointer RAG
             </span>
-          </div>
+          </Link>
           <div className="flex items-center gap-1">
             <ModeToggle />
           </div>

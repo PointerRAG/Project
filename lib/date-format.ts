@@ -1,5 +1,5 @@
-const APP_DATE_LOCALE = "en-IN";
-const APP_TIME_ZONE = "Asia/Kolkata";
+export const APP_DATE_LOCALE = "en-IN";
+export const APP_TIME_ZONE = "Asia/Kolkata";
 
 const timeFormatter = new Intl.DateTimeFormat(APP_DATE_LOCALE, {
   hour: "2-digit",
