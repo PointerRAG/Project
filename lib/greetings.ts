@@ -133,5 +133,5 @@ export function getGreeting(fullName: string): string {
       : alwaysGreetings;
 
   const selected = pool[Math.floor(Math.random() * pool.length)];
-  return selected.template.replaceAll("{first_name}", firstName);
+  return selected.template.replaceAll("{first_name}", () => firstName);
 }
