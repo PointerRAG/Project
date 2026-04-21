@@ -288,7 +288,7 @@ export function ChatSidebar({ chats, currentUser }: ChatSidebarProps) {
                         </SidebarMenuButton>
                       </TooltipTrigger>
                       <TooltipContent side="right" sideOffset={8}>
-                        {formatChatSidebarDate(chat.timestamp)}
+                        <span suppressHydrationWarning>{formatChatSidebarDate(chat.timestamp)}</span>
                       </TooltipContent>
                     </Tooltip>
 

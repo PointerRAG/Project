@@ -1,31 +1,26 @@
 export const APP_DATE_LOCALE = "en-IN";
-export const APP_TIME_ZONE = "Asia/Kolkata";
 
 const timeFormatter = new Intl.DateTimeFormat(APP_DATE_LOCALE, {
   hour: "2-digit",
   minute: "2-digit",
-  timeZone: APP_TIME_ZONE,
 });
 
 const longDateFormatter = new Intl.DateTimeFormat(APP_DATE_LOCALE, {
   year: "numeric",
   month: "long",
   day: "numeric",
-  timeZone: APP_TIME_ZONE,
 });
 
 const shortDateFormatter = new Intl.DateTimeFormat(APP_DATE_LOCALE, {
   year: "numeric",
   month: "short",
   day: "numeric",
-  timeZone: APP_TIME_ZONE,
 });
 
 const dayKeyFormatter = new Intl.DateTimeFormat("en-CA", {
   year: "numeric",
   month: "2-digit",
   day: "2-digit",
-  timeZone: APP_TIME_ZONE,
 });
 
 export function parseTimestampToMs(timestamp: string): number | null {

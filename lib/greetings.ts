@@ -1,4 +1,4 @@
-import { APP_DATE_LOCALE, APP_TIME_ZONE } from "./date-format";
+import { APP_DATE_LOCALE } from "./date-format";
 
 type GreetingCondition =
   | "morning"
@@ -35,7 +35,7 @@ const GREETINGS: GreetingTemplate[] = [
 
   // Daytime (12:00 – 20:59)
   { template: "How was your day, {first_name}?", condition: "daytime" },
-  { template: "How was your day?", condition: "daytime" },
+  { template: "G'day, {first_name}", condition: "daytime" },
 
   // Day-of-week specific
   { template: "Happy Monday, {first_name}", condition: "day:Monday" },
@@ -66,11 +66,13 @@ const GREETINGS: GreetingTemplate[] = [
   { template: "Welcome, {first_name}", condition: "always" },
   { template: "What's new, {first_name}?", condition: "always" },
   { template: "What's on your mind, {first_name}?", condition: "always" },
+  { template: "What's up, {first_name}?", condition: "always" },
 ];
 
 /**
  * Returns a context-aware greeting based on the current time and day of week,
- * using the app's configured timezone (Asia/Kolkata).
+ * using the user's local timezone (this function is only called client-side
+ * inside useEffect, so no SSR hydration concern).
  *
  * Extracts the first name from the full name for a friendlier tone.
  */
@@ -79,35 +81,30 @@ export function getGreeting(fullName: string): string {
 
   const now = new Date();
 
-  // Use formatToParts to reliably extract the current hour in the app timezone
+  // Use formatToParts to reliably extract the current hour in the user's local timezone
   const hourFormatter = new Intl.DateTimeFormat(APP_DATE_LOCALE, {
     hour: "numeric",
-    hour12: false,
-    timeZone: APP_TIME_ZONE,
+    hourCycle: "h23",
   });
   const hourPart = hourFormatter
     .formatToParts(now)
     .find((p) => p.type === "hour");
-  const parsedHour = hourPart ? parseInt(hourPart.value, 10) : NaN;
-  const hour = Number.isFinite(parsedHour)
-    ? parsedHour % 24
-    : new Date().getHours();
+  const hourText = hourPart ? hourPart.value : hourFormatter.format(now);
+  const parsedHour = parseInt(hourText, 10);
+  const hour = !Number.isNaN(parsedHour) ? parsedHour % 24 : 0;
 
-  // Use formatToParts to get the weekday name in the app timezone
+  // Use formatToParts to get the weekday name in the user's local timezone
   const dayFormatter = new Intl.DateTimeFormat("en-US", {
     weekday: "long",
-    timeZone: APP_TIME_ZONE,
   });
   const dayPart = dayFormatter
     .formatToParts(now)
     .find((p) => p.type === "weekday");
   const dayOfWeek = dayPart?.value ?? "";
 
-  // Filter greetings to only those eligible for the current context
-  const eligible = GREETINGS.filter((g) => {
+  // Filter greetings to only those eligible for the current context (excluding "always")
+  const specificGreetings = GREETINGS.filter((g) => {
     switch (g.condition) {
-      case "always":
-        return true;
       case "morning":
         return hour >= 5 && hour < 12;
       case "afternoon":
@@ -126,10 +123,14 @@ export function getGreeting(fullName: string): string {
     }
   });
 
+  const alwaysGreetings = GREETINGS.filter((g) => g.condition === "always");
+
+  // If we have specific greetings, give them an 80% chance to be used over generic ones
+  // to avoid generic greetings crowding out the context-aware ones.
   const pool =
-    eligible.length > 0
-      ? eligible
-      : GREETINGS.filter((g) => g.condition === "always");
+    specificGreetings.length > 0 && Math.random() < 0.6
+      ? specificGreetings
+      : alwaysGreetings;
 
   const selected = pool[Math.floor(Math.random() * pool.length)];
   return selected.template.replaceAll("{first_name}", firstName);

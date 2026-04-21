@@ -321,7 +321,7 @@ export function ChatArea({
                   {showDateDivider && ts !== null && (
                     <div className="my-2 flex items-center gap-1">
                       <Separator className="flex-1" />
-                      <span className="min-w-max text-xs font-semibold text-muted-foreground">
+                      <span className="min-w-max text-xs font-semibold text-muted-foreground" suppressHydrationWarning>
                         {formatChatLongDate(ts)}
                       </span>
                       <Separator className="flex-1" />
@@ -378,7 +378,7 @@ export function ChatArea({
                             {message.role === "assistant" ? "AI" : "You"}
                           </span>
                           {ts !== null ? (
-                            <span>{formatChatTime(ts)}</span>
+                            <span suppressHydrationWarning>{formatChatTime(ts)}</span>
                           ) : (
                             <span>{message.timestamp}</span>
                           )}
