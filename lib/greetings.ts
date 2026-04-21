@@ -31,7 +31,7 @@ const GREETINGS: GreetingTemplate[] = [
     template: "What's on your mind tonight, {first_name}?",
     condition: "night",
   },
-  { template: "It's late-night {first_name}", condition: "night" },
+  { template: "It's late-night, {first_name}", condition: "night" },
 
   // Daytime (12:00 – 20:59)
   { template: "How was your day, {first_name}?", condition: "daytime" },
@@ -75,7 +75,7 @@ const GREETINGS: GreetingTemplate[] = [
  * Extracts the first name from the full name for a friendlier tone.
  */
 export function getGreeting(fullName: string): string {
-  const firstName = fullName.split(/\s+/)[0] || "there";
+  const firstName = fullName.trim().split(/\s+/)[0] || "User";
 
   const now = new Date();
 
@@ -88,7 +88,10 @@ export function getGreeting(fullName: string): string {
   const hourPart = hourFormatter
     .formatToParts(now)
     .find((p) => p.type === "hour");
-  const hour = hourPart ? parseInt(hourPart.value, 10) : new Date().getHours();
+  const parsedHour = hourPart ? parseInt(hourPart.value, 10) : NaN;
+  const hour = Number.isFinite(parsedHour)
+    ? parsedHour % 24
+    : new Date().getHours();
 
   // Use formatToParts to get the weekday name in the app timezone
   const dayFormatter = new Intl.DateTimeFormat("en-US", {
