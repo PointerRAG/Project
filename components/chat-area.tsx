@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-import { Send, FileUp, Paperclip, File, X } from "lucide-react";
+import { Send, FileUp, Paperclip, File, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,11 +19,7 @@ import {
 } from "@/lib/date-format";
 // Import shared types
 import type { Chat as ChatModel, Message } from "@/lib/types";
-import {
-  sendMessageAction,
-  uploadDocumentAction,
-  deleteDocumentAction,
-} from "@/lib/actions/chat";
+import { sendMessageAction, deleteDocumentAction } from "@/lib/actions/chat";
 import { toast } from "sonner";
 import { Greeting } from "@/components/greeting";
 
@@ -41,6 +37,7 @@ interface UploadedDocument {
   name: string;
   size: string;
   filename: string;
+  uploading?: boolean;
 }
 
 export function ChatArea({
@@ -97,6 +94,9 @@ export function ChatArea({
       }
     } catch (error) {
       console.error("Failed to send message:", error);
+      toast.error("Failed to send message", {
+        description: "Could not reach the server. Please try again.",
+      });
     } finally {
       setIsGenerating(false);
       // Removed router.refresh() because the Server Action handles revalidation natively!
@@ -120,14 +120,14 @@ export function ChatArea({
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const MAX_SIZE_BYTES = 1 * 1024 * 1024; // 1 MB
+    const MAX_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
 
     // Filter out oversized files and show a toast for each rejected one
     const validFiles: File[] = [];
     for (const file of Array.from(files)) {
       if (file.size > MAX_SIZE_BYTES) {
         toast.error(`"${file.name}" is too large`, {
-          description: `Files must be under 1 MB. This file is ${(file.size / (1024 * 1024)).toFixed(2)} MB.`,
+          description: `Files must be under ${(MAX_SIZE_BYTES / (1024 * 1024)).toFixed(2)} MB. This file is ${(file.size / (1024 * 1024)).toFixed(2)} MB.`,
         });
       } else {
         validFiles.push(file);
@@ -148,6 +148,7 @@ export function ChatArea({
         name: file.name,
         size: (file.size / 1024).toFixed(2) + " KB",
         filename: file.name,
+        uploading: true,
       } satisfies UploadedDocument,
     }));
 
@@ -156,25 +157,45 @@ export function ChatArea({
       ...uploadQueue.map((item) => item.optimisticDocument),
     ]);
 
-    // Upload to backend
+    // Upload to backend via streaming API route
     for (const { file, optimisticDocument } of uploadQueue) {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("chat_id", currentChat?.id || "default-chat");
 
       try {
-        const result = await uploadDocumentAction(formData);
-        console.log("File uploaded successfully:", result);
+        const uploadPromise = fetch(
+          `/api/upload?chatId=${encodeURIComponent(currentChat?.id || "default-chat")}`,
+          { method: "POST", body: formData },
+        ).then(async (response) => {
+          if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.error || "Upload failed");
+          }
+          return response.json();
+        });
 
-        // Trigger navigation refresh to update document count in layout
-        router.refresh();
-      } catch (error) {
-        console.error("Error uploading file:", error);
-        // Remove failed document from optimistic UI.
-        setDocuments((prev) =>
-          prev.filter((d) => d.id !== optimisticDocument.id),
-        );
-        toast.error(`Failed to upload "${file.name}"`);
+        toast.promise(uploadPromise, {
+          loading: `Uploading "${file.name}"...`,
+          success: () => {
+            setDocuments((prev) =>
+              prev.map((d) =>
+                d.id === optimisticDocument.id ? { ...d, uploading: false } : d,
+              ),
+            );
+            router.refresh();
+            return `"${file.name}" uploaded successfully`;
+          },
+          error: (err) => {
+            setDocuments((prev) =>
+              prev.filter((d) => d.id !== optimisticDocument.id),
+            );
+            return `Failed to upload "${file.name}": ${err.message}`;
+          },
+        });
+
+        await uploadPromise;
+      } catch {
+        console.error("Failed to upload file");
       }
     }
 
@@ -193,6 +214,9 @@ export function ChatArea({
         router.refresh();
       } catch (error) {
         console.error("Failed to delete document from collection:", error);
+        toast.error(`Failed to remove "${doc.name}"`, {
+          description: "Could not delete the document. Please try again.",
+        });
       }
     }
   };
@@ -260,7 +284,11 @@ export function ChatArea({
                 key={doc.id}
                 className="group flex items-center gap-2 rounded-lg bg-accent px-3 py-1.5 text-sm"
               >
-                <File className="size-4 text-muted-foreground" />
+                {doc.uploading ? (
+                  <Loader2 className="size-4 text-muted-foreground animate-spin" />
+                ) : (
+                  <File className="size-4 text-muted-foreground" />
+                )}
                 <span className="max-w-50 truncate text-accent-foreground">
                   {doc.name}
                 </span>
@@ -321,7 +349,10 @@ export function ChatArea({
                   {showDateDivider && ts !== null && (
                     <div className="my-2 flex items-center gap-1">
                       <Separator className="flex-1" />
-                      <span className="min-w-max text-xs font-semibold text-muted-foreground" suppressHydrationWarning>
+                      <span
+                        className="min-w-max text-xs font-semibold text-muted-foreground"
+                        suppressHydrationWarning
+                      >
                         {formatChatLongDate(ts)}
                       </span>
                       <Separator className="flex-1" />
@@ -378,7 +409,9 @@ export function ChatArea({
                             {message.role === "assistant" ? "AI" : "You"}
                           </span>
                           {ts !== null ? (
-                            <span suppressHydrationWarning>{formatChatTime(ts)}</span>
+                            <span suppressHydrationWarning>
+                              {formatChatTime(ts)}
+                            </span>
                           ) : (
                             <span>{message.timestamp}</span>
                           )}

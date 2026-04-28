@@ -137,57 +137,8 @@ export async function sendMessageAction(chatId: string, content: string) {
   };
 }
 
-export async function uploadDocumentAction(formData: FormData) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
 
-  if (!session) {
-    throw new Error("Unauthorized");
-  }
 
-  const chatId = formData.get("chat_id") as string;
-  const file = formData.get("file");
-
-  if (!chatId || !file) {
-    throw new Error("chat_id and file are required");
-  }
-
-  // Verify chat ownership
-  const chat = await prisma.chat.findUnique({
-    where: { id: chatId },
-  });
-
-  if (!chat || chat.userId !== session.user.id) {
-    throw new Error("Chat not found or unauthorized");
-  }
-
-  // Forward the file to Python ML backend
-  const response = await fetch(`${BACKEND_API_BASE}/ingest`, {
-    method: "POST",
-    body: formData,
-  });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    console.error("Python ingestion error:", errText);
-    throw new Error(`Backend processing failed: ${errText}`);
-  }
-
-  const result = await response.json();
-
-  // Increment document count in Next.js Prisma
-  await prisma.chat.update({
-    where: { id: chatId },
-    data: {
-      documentCount: { increment: 1 },
-      updatedAt: new Date(),
-    },
-  });
-
-  revalidatePath("/chat");
-  return { success: true, result };
-}
 
 export async function deleteDocumentAction(chatId: string, filename: string) {
   const session = await auth.api.getSession({

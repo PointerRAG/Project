@@ -4,7 +4,7 @@ Provides endpoint for file upload, parsing, chunking, and storage.
 """
 import logging
 
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
+from fastapi import APIRouter, HTTPException, UploadFile, File, Query, Depends
 
 from datetime import datetime
 from ...schemas.ingestion import IngestResponse, IngestError
@@ -44,14 +44,14 @@ def get_service() -> IngestionService:
     ),
 )
 async def ingest_document(
-    chat_id: str = Form(..., description="UUID of the chat session"),
+    chat_id: str = Query(..., description="UUID of the chat session"),
     file: UploadFile = File(..., description="Document file to ingest"),
     service: IngestionService = Depends(get_service),
 ) -> IngestResponse:
     """
     Ingest a document into a chat-specific collection.
     
-    - **chat_id**: UUID of the chat session (form field)
+    - **chat_id**: UUID of the chat session (query parameter)
     - **file**: Document file (PDF, TXT, or MD)
     
     The document will be:
