@@ -97,8 +97,16 @@ export async function POST(request: NextRequest) {
   // 5. Create a Document record in Prisma
   //    Use storage_key as the Document ID for direct lookup during deletion
   const filename = result?.filename || "unknown";
-  const storageKey = result?.storage_key || filename;
+  const storageKey = result?.storage_key;
   const fileSize = result?.file_size || 0;
+
+  if (!storageKey) {
+    console.error("Backend did not return a storage_key");
+    return NextResponse.json(
+      { error: "Backend returned an invalid response (missing storage_key)" },
+      { status: 502 },
+    );
+  }
 
   await prisma.document.create({
     data: {

@@ -244,6 +244,10 @@ class VectorService:
         Returns:
             Dictionary with success status and deleted count.
         """
+        if not self.collection_exists(chat_id):
+            logger.info(f"No collection exists for chat {chat_id}, nothing to delete")
+            return {"success": True, "deleted_chunks": 0}
+
         collection = self.get_collection(chat_id)
         try:
             # First get the IDs so we can report the count

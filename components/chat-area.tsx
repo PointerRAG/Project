@@ -198,9 +198,18 @@ export function ChatArea({
         toast.promise(uploadPromise, {
           loading: `Uploading "${file.name}"...`,
           success: (data) => {
+            const serverKey = data?.result?.storage_key;
+            const serverSize = data?.result?.file_size;
             setDocuments((prev) =>
               prev.map((d) =>
-                d.id === optimisticDocument.id ? { ...d, uploading: false } : d,
+                d.id === optimisticDocument.id
+                  ? {
+                      ...d,
+                      id: serverKey || d.id,
+                      size: serverSize ? formatFileSize(serverSize) : d.size,
+                      uploading: false,
+                    }
+                  : d,
               ),
             );
             router.refresh();
