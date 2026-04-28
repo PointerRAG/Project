@@ -214,7 +214,8 @@ class IngestionService:
     def chunk_text(
         self,
         text: str,
-        filename: str
+        filename: str,
+        storage_key: str
     ) -> List[Dict[str, Any]]:
         """
         Split text into overlapping chunks with metadata.
@@ -222,6 +223,7 @@ class IngestionService:
         Args:
             text: Full text content to chunk.
             filename: Source filename for metadata.
+            storage_key: Unique storage key for this upload.
             
         Returns:
             List of chunk dictionaries with text and metadata.
@@ -238,14 +240,14 @@ class IngestionService:
         timestamp = datetime.utcnow().isoformat()
         
         for idx, chunk_text in enumerate(chunks):
-            # Generate unique ID for each chunk
-            chunk_id = f"{filename.replace('.', '_')}_chunk_{idx}"
+            # Generate unique ID for each chunk using storage_key
+            chunk_id = f"{storage_key}_chunk_{idx}"
             
             result.append({
                 "id": chunk_id,
                 "text": chunk_text,
                 "metadata": {
-                    "source_id": filename,
+                    "source_id": storage_key,
                     "file_name": filename,
                     "chunk_index": idx,
                     "total_chunks": len(chunks),
@@ -264,7 +266,8 @@ class IngestionService:
         self,
         chat_id: str,
         file_bytes: bytes,
-        filename: str
+        filename: str,
+        storage_key: str
     ) -> IngestResponse:
         """
         Full ingestion pipeline: parse → chunk → store.
@@ -273,6 +276,7 @@ class IngestionService:
             chat_id: Target chat/collection ID.
             file_bytes: Raw file bytes.
             filename: Original filename (used for extension detection).
+            storage_key: Unique storage key for this upload.
             
         Returns:
             IngestResponse with ingestion statistics.
@@ -295,8 +299,8 @@ class IngestionService:
         else:
             text, page_count = self.parse_text_file(file_bytes)
         
-        # Chunk the text
-        chunks = self.chunk_text(text, filename)
+        # Chunk the text using storage_key for unique identification
+        chunks = self.chunk_text(text, filename, storage_key)
         
         if not chunks:
             raise ValueError("Document produced no text chunks")
@@ -328,6 +332,8 @@ class IngestionService:
         return IngestResponse(
             chat_id=chat_id,
             filename=filename,
+            storage_key=storage_key,
+            file_size=len(file_bytes),
             chunks_created=actual,
             document_ids=add_response.document_ids,
             pages_processed=page_count

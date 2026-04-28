@@ -36,8 +36,13 @@ interface UploadedDocument {
   id: string;
   name: string;
   size: string;
-  filename: string;
   uploading?: boolean;
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
 export function ChatArea({
@@ -48,7 +53,14 @@ export function ChatArea({
   const [input, setInput] = useState("");
   const [localMessages, setLocalMessages] = useState<Message[]>(messages);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [documents, setDocuments] = useState<UploadedDocument[]>([]);
+  const [documents, setDocuments] = useState<UploadedDocument[]>(
+    (currentChat?.documents ?? []).map((d) => ({
+      id: d.id,
+      name: d.name,
+      size: formatFileSize(d.size),
+      uploading: false,
+    })),
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -56,6 +68,14 @@ export function ChatArea({
   // Reset internal state when navigating between chats
   useEffect(() => {
     setLocalMessages(messages);
+    setDocuments(
+      (currentChat?.documents ?? []).map((d) => ({
+        id: d.id,
+        name: d.name,
+        size: formatFileSize(d.size),
+        uploading: false,
+      })),
+    );
   }, [messages, currentChat?.id]);
 
   const userName = currentUser.name?.trim() || "User";
@@ -147,7 +167,6 @@ export function ChatArea({
         id: `${Date.now()}-${index}-${file.name}`,
         name: file.name,
         size: (file.size / 1024).toFixed(2) + " KB",
-        filename: file.name,
         uploading: true,
       } satisfies UploadedDocument,
     }));
@@ -179,9 +198,18 @@ export function ChatArea({
         toast.promise(uploadPromise, {
           loading: `Uploading "${file.name}"...`,
           success: (data) => {
+            const serverKey = data?.result?.storage_key;
+            const serverSize = data?.result?.file_size;
             setDocuments((prev) =>
               prev.map((d) =>
-                d.id === optimisticDocument.id ? { ...d, uploading: false } : d,
+                d.id === optimisticDocument.id
+                  ? {
+                      ...d,
+                      id: serverKey || d.id,
+                      size: serverSize ? formatFileSize(serverSize) : d.size,
+                      uploading: false,
+                    }
+                  : d,
               ),
             );
             router.refresh();
@@ -219,7 +247,7 @@ export function ChatArea({
     // Delete from backend collection
     if (doc && currentChat) {
       try {
-        await deleteDocumentAction(currentChat.id, doc.filename);
+        await deleteDocumentAction(currentChat.id, doc.id);
         router.refresh();
       } catch (error) {
         console.error("Failed to delete document from collection:", error);
@@ -250,29 +278,23 @@ export function ChatArea({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-background">
-      <div className="border-b border-border bg-card px-4 py-3 md:px-6">
+      <div className="border-b border-border bg-card px-4 py-2 md:px-6">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <SidebarTrigger className="md:hidden" />
-            <div>
-              <h1 className="text-xl font-semibold text-card-foreground">
-                {currentChat.title}
-              </h1>
-              <p className="mt-0.5 text-sm text-muted-foreground">
-                {currentChat.documentCount === 0
-                  ? "No documents uploaded"
-                  : `${currentChat.documentCount} ${currentChat.documentCount === 1 ? "document" : "documents"} uploaded`}
-              </p>
-            </div>
+            <h1 className="text-xl font-semibold text-card-foreground">
+              {currentChat.title}
+            </h1>
           </div>
 
           <Button
             onClick={() => fileInputRef.current?.click()}
             variant="outline"
-            className="gap-2"
+            size="sm"
+            className="gap-1.5 text-xs"
           >
-            <FileUp className="size-4" />
-            Upload Documents
+            <FileUp className="size-3.5" />
+            Upload
           </Button>
           <input
             ref={fileInputRef}
@@ -286,22 +308,22 @@ export function ChatArea({
       </div>
 
       {documents.length > 0 && (
-        <div className="border-b border-border bg-card px-4 py-3 md:px-6">
-          <div className="flex flex-wrap gap-2">
+        <div className="border-b border-border bg-card px-4 py-1.5 md:px-6">
+          <div className="flex flex-wrap gap-1.5">
             {documents.map((doc) => (
               <div
                 key={doc.id}
-                className="group flex items-center gap-2 rounded-lg bg-accent px-3 py-1.5 text-sm"
+                className="group flex items-center gap-1.5 rounded-md bg-accent px-2 py-1 text-xs"
               >
                 {doc.uploading ? (
-                  <Loader2 className="size-4 text-muted-foreground animate-spin" />
+                  <Loader2 className="size-3 text-muted-foreground animate-spin" />
                 ) : (
-                  <File className="size-4 text-muted-foreground" />
+                  <File className="size-3 text-muted-foreground" />
                 )}
-                <span className="max-w-50 truncate text-accent-foreground">
+                <span className="max-w-32 truncate text-accent-foreground">
                   {doc.name}
                 </span>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-[10px] text-muted-foreground">
                   ({doc.size})
                 </span>
                 <Button
@@ -309,9 +331,9 @@ export function ChatArea({
                   variant="ghost"
                   size="icon-sm"
                   onClick={() => handleRemoveDocument(doc.id)}
-                  className="ml-1 size-6 p-0 opacity-0 transition-opacity group-hover:opacity-100"
+                  className="ml-0.5 size-5 p-0 opacity-0 transition-opacity group-hover:opacity-100"
                 >
-                  <X className="size-3.5 text-muted-foreground hover:text-foreground" />
+                  <X className="size-3 text-muted-foreground hover:text-foreground" />
                 </Button>
               </div>
             ))}

@@ -69,14 +69,14 @@ model Verification {
 }
 
 model Chat {
-  id            String    @id @default(uuid())
-  title         String
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  userId        String
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  documentCount Int       @default(0)
-  messages      Message[]
+  id        String     @id @default(uuid())
+  title     String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  Message[]
+  documents Document[]
 
   @@index([userId])
 }
@@ -85,6 +85,17 @@ model Message {
   id        String   @id @default(uuid())
   role      String // "user" or "assistant"
   content   String
+  createdAt DateTime @default(now())
+  chatId    String
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@index([chatId])
+}
+
+model Document {
+  id        String   @id @default(uuid())
+  name      String   // original display name (e.g. "report.pdf")
+  size      BigInt   // file size in bytes
   createdAt DateTime @default(now())
   chatId    String
   chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)

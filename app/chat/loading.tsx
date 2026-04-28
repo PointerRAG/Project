@@ -4,13 +4,12 @@ export default function Loading() {
   return (
     <div className="flex h-dvh min-h-0 w-full overflow-hidden bg-background">
       <div className="flex min-h-0 flex-1 flex-col bg-background">
-        <div className="border-b border-border bg-card px-4 py-3 md:px-6">
+        <div className="border-b border-border bg-card px-4 py-2 md:px-6">
           <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0 space-y-1">
-              <Skeleton className="h-6 w-36 sm:w-56 rounded-md" />
-              <Skeleton className="h-4 w-24 sm:w-40 rounded-md" />
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-7 w-36 sm:w-56 rounded-md" />
             </div>
-            <Skeleton className="h-10 w-24 sm:w-40 rounded-md" />
+            <Skeleton className="h-9 w-20 sm:w-24 rounded-md" />
           </div>
         </div>
 

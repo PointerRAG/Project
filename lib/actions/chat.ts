@@ -140,7 +140,7 @@ export async function sendMessageAction(chatId: string, content: string) {
 
 
 
-export async function deleteDocumentAction(chatId: string, filename: string) {
+export async function deleteDocumentAction(chatId: string, documentId: string) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -158,8 +158,8 @@ export async function deleteDocumentAction(chatId: string, filename: string) {
     throw new Error("Chat not found or unauthorized");
   }
 
-  // Tell the Python backend to delete all chunks for this filename
-  const url = `${BACKEND_API_BASE}/vector/document/${chatId}?filename=${encodeURIComponent(filename)}`;
+  // Tell the Python backend to delete all chunks for this document
+  const url = `${BACKEND_API_BASE}/vector/document/${chatId}?storage_key=${encodeURIComponent(documentId)}`;
   const response = await fetch(url, { method: "DELETE" });
 
   if (!response.ok) {
@@ -168,13 +168,9 @@ export async function deleteDocumentAction(chatId: string, filename: string) {
     throw new Error(`Backend deletion failed: ${errText}`);
   }
 
-  // Decrement document count in Prisma (floor at 0)
-  await prisma.chat.update({
-    where: { id: chatId },
-    data: {
-      documentCount: { decrement: 1 },
-      updatedAt: new Date(),
-    },
+  // Delete the Document record from Prisma by its unique ID
+  await prisma.document.delete({
+    where: { id: documentId },
   });
 
   revalidatePath("/chat");
