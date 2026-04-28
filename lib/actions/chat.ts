@@ -168,13 +168,9 @@ export async function deleteDocumentAction(chatId: string, filename: string) {
     throw new Error(`Backend deletion failed: ${errText}`);
   }
 
-  // Decrement document count in Prisma (floor at 0)
-  await prisma.chat.update({
-    where: { id: chatId },
-    data: {
-      documentCount: { decrement: 1 },
-      updatedAt: new Date(),
-    },
+  // Delete the Document record from Prisma
+  await prisma.document.deleteMany({
+    where: { chatId, filename },
   });
 
   revalidatePath("/chat");

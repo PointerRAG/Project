@@ -94,12 +94,16 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // 5. Increment document count in Prisma
-  await prisma.chat.update({
-    where: { id: chatId },
+  // 5. Create a Document record in Prisma
+  const filename = result?.filename || "unknown";
+  const fileSize = result?.file_size || 0;
+
+  await prisma.document.create({
     data: {
-      documentCount: { increment: 1 },
-      updatedAt: new Date(),
+      name: filename,
+      filename: filename,
+      size: fileSize,
+      chatId,
     },
   });
 

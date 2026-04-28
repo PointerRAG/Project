@@ -328,6 +328,7 @@ class IngestionService:
         return IngestResponse(
             chat_id=chat_id,
             filename=filename,
+            file_size=len(file_bytes),
             chunks_created=actual,
             document_ids=add_response.document_ids,
             pages_processed=page_count

@@ -14,6 +14,7 @@ class IngestResponse(BaseModel):
     """Successful response for document ingestion."""
     chat_id: str = Field(..., description="Chat ID the documents were ingested into")
     filename: str = Field(..., description="Original filename of the uploaded document")
+    file_size: int = Field(..., description="File size in bytes")
     chunks_created: int = Field(..., description="Number of text chunks created from the document")
     document_ids: List[str] = Field(..., description="List of document IDs for the created chunks")
     pages_processed: int = Field(default=1, description="Number of pages processed (for PDFs)")
