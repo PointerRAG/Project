@@ -48,10 +48,11 @@ export async function POST(request: NextRequest) {
   //    The verified chatId is passed as a query param so the backend
   //    derives the target chat solely from the server-verified value.
   const contentType = request.headers.get("content-type");
+  const backendUrl = `${BACKEND_API_BASE}/ingest?chat_id=${encodeURIComponent(chatId)}`;
 
-  const backendResponse = await fetch(
-    `${BACKEND_API_BASE}/ingest?chat_id=${encodeURIComponent(chatId)}`,
-    {
+  let backendResponse: Response;
+  try {
+    backendResponse = await fetch(backendUrl, {
       method: "POST",
       body: request.body,
       headers: {
@@ -59,8 +60,11 @@ export async function POST(request: NextRequest) {
       },
       // @ts-expect-error -- Node 18+ supports duplex for streaming request bodies
       duplex: "half",
-    },
-  );
+    });
+  } catch (error) {
+    console.error("Python ingestion transport error:", error);
+    return NextResponse.json({ error: "Backend unavailable" }, { status: 502 });
+  }
 
   if (!backendResponse.ok) {
     const errText = await backendResponse.text();
@@ -71,7 +75,16 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const result = await backendResponse.json();
+  let result;
+  try {
+    result = await backendResponse.json();
+  } catch {
+    console.error("Failed to parse Python backend response as JSON");
+    return NextResponse.json(
+      { error: "Invalid response from backend" },
+      { status: 502 },
+    );
+  }
 
   // 5. Increment document count in Prisma
   await prisma.chat.update({
