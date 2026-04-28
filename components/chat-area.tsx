@@ -36,7 +36,6 @@ interface UploadedDocument {
   id: string;
   name: string;
   size: string;
-  filename: string;
   uploading?: boolean;
 }
 
@@ -59,7 +58,6 @@ export function ChatArea({
       id: d.id,
       name: d.name,
       size: formatFileSize(d.size),
-      filename: d.filename,
       uploading: false,
     })),
   );
@@ -75,7 +73,6 @@ export function ChatArea({
         id: d.id,
         name: d.name,
         size: formatFileSize(d.size),
-        filename: d.filename,
         uploading: false,
       })),
     );
@@ -170,7 +167,6 @@ export function ChatArea({
         id: `${Date.now()}-${index}-${file.name}`,
         name: file.name,
         size: (file.size / 1024).toFixed(2) + " KB",
-        filename: file.name,
         uploading: true,
       } satisfies UploadedDocument,
     }));
@@ -242,7 +238,7 @@ export function ChatArea({
     // Delete from backend collection
     if (doc && currentChat) {
       try {
-        await deleteDocumentAction(currentChat.id, doc.filename);
+        await deleteDocumentAction(currentChat.id, doc.id);
         router.refresh();
       } catch (error) {
         console.error("Failed to delete document from collection:", error);

@@ -3,6 +3,7 @@ Ingestion API routes for document upload and processing.
 Provides endpoint for file upload, parsing, chunking, and storage.
 """
 import logging
+import uuid
 
 from fastapi import APIRouter, HTTPException, UploadFile, File, Query, Depends
 
@@ -98,13 +99,17 @@ async def ingest_document(
                 }
             )
         
-        logger.info(f"Ingesting {filename} ({len(file_bytes)} bytes) for chat {chat_id}")
+        # Generate a unique storage key for this upload
+        storage_key = uuid.uuid4().hex
+        
+        logger.info(f"Ingesting {filename} ({len(file_bytes)} bytes) for chat {chat_id} [key={storage_key}]")
         
         # Process the file
         result = service.ingest_file(
             chat_id=chat_id,
             file_bytes=file_bytes,
-            filename=filename
+            filename=filename,
+            storage_key=storage_key
         )
         
         logger.info(

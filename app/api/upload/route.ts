@@ -95,13 +95,15 @@ export async function POST(request: NextRequest) {
   }
 
   // 5. Create a Document record in Prisma
+  //    Use storage_key as the Document ID for direct lookup during deletion
   const filename = result?.filename || "unknown";
+  const storageKey = result?.storage_key || filename;
   const fileSize = result?.file_size || 0;
 
   await prisma.document.create({
     data: {
+      id: storageKey,
       name: filename,
-      filename: filename,
       size: BigInt(fileSize),
       chatId,
     },

@@ -95,7 +95,6 @@ model Message {
 model Document {
   id        String   @id @default(uuid())
   name      String   // original display name (e.g. "report.pdf")
-  filename  String   // backend storage name
   size      BigInt   // file size in bytes
   createdAt DateTime @default(now())
   chatId    String

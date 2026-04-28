@@ -67,7 +67,6 @@ export async function getChatById(
     documents: chat.documents.map((d: any) => ({
       id: d.id,
       name: d.name,
-      filename: d.filename,
       size: Number(d.size),
       createdAt: new Date(d.createdAt).toISOString(),
     })),

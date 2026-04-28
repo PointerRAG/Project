@@ -185,21 +185,21 @@ async def get_collection_stats(
 @router.delete(
     "/document/{chat_id}",
     summary="Delete all chunks for a specific document",
-    description="Delete all chunks belonging to a specific file from a chat collection."
+    description="Delete all chunks belonging to a specific document upload from a chat collection.",
 )
-async def delete_document_by_filename(
+async def delete_document_by_storage_key(
     chat_id: str,
-    filename: str,
+    storage_key: str,
     service: VectorService = Depends(get_service),
 ):
     """
-    Delete all vector chunks for a given filename from a chat collection.
+    Delete all vector chunks for a given storage key from a chat collection.
 
     - **chat_id**: UUID of the chat session
-    - **filename**: The original filename as stored in chunk metadata
+    - **storage_key**: The unique storage key assigned during ingestion
     """
     try:
-        result = service.delete_documents_by_filename(chat_id, filename)
+        result = service.delete_documents_by_storage_key(chat_id, storage_key)
         if not result.get("success"):
             raise HTTPException(status_code=500, detail=result.get("error", "Deletion failed"))
         return result

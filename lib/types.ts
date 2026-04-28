@@ -8,7 +8,6 @@ export interface Message {
 export interface Document {
   id: string;
   name: string;
-  filename: string;
   size: number;
   createdAt: string;
 }
