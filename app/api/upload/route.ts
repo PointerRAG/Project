@@ -44,18 +44,23 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // 4. Stream the request body directly to the Python backend
+  // 4. Stream the request body directly to the Python backend.
+  //    The verified chatId is passed as a query param so the backend
+  //    derives the target chat solely from the server-verified value.
   const contentType = request.headers.get("content-type");
 
-  const backendResponse = await fetch(`${BACKEND_API_BASE}/ingest`, {
-    method: "POST",
-    body: request.body,
-    headers: {
-      ...(contentType ? { "Content-Type": contentType } : {}),
+  const backendResponse = await fetch(
+    `${BACKEND_API_BASE}/ingest?chat_id=${encodeURIComponent(chatId)}`,
+    {
+      method: "POST",
+      body: request.body,
+      headers: {
+        ...(contentType ? { "Content-Type": contentType } : {}),
+      },
+      // @ts-expect-error -- Node 18+ supports duplex for streaming request bodies
+      duplex: "half",
     },
-    // @ts-expect-error -- Node 18+ supports duplex for streaming request bodies
-    duplex: "half",
-  });
+  );
 
   if (!backendResponse.ok) {
     const errText = await backendResponse.text();

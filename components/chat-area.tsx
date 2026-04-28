@@ -161,7 +161,6 @@ export function ChatArea({
     for (const { file, optimisticDocument } of uploadQueue) {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("chat_id", currentChat?.id || "default-chat");
 
       try {
         const uploadPromise = fetch(
