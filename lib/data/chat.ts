@@ -68,7 +68,7 @@ export async function getChatById(
       id: d.id,
       name: d.name,
       filename: d.filename,
-      size: d.size,
+      size: Number(d.size),
       createdAt: new Date(d.createdAt).toISOString(),
     })),
     messages,

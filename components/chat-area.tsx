@@ -70,6 +70,15 @@ export function ChatArea({
   // Reset internal state when navigating between chats
   useEffect(() => {
     setLocalMessages(messages);
+    setDocuments(
+      (currentChat?.documents ?? []).map((d) => ({
+        id: d.id,
+        name: d.name,
+        size: formatFileSize(d.size),
+        filename: d.filename,
+        uploading: false,
+      })),
+    );
   }, [messages, currentChat?.id]);
 
   const userName = currentUser.name?.trim() || "User";

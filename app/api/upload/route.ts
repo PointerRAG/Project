@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
     data: {
       name: filename,
       filename: filename,
-      size: fileSize,
+      size: BigInt(fileSize),
       chatId,
     },
   });
