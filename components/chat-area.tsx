@@ -169,27 +169,36 @@ export function ChatArea({
         ).then(async (response) => {
           if (!response.ok) {
             const err = await response.json().catch(() => ({}));
-            throw new Error(err.error || "Upload failed");
+            const error = new Error(err.error || "Upload failed");
+            (error as any).detail = err.detail || null;
+            throw error;
           }
           return response.json();
         });
 
         toast.promise(uploadPromise, {
           loading: `Uploading "${file.name}"...`,
-          success: () => {
+          success: (data) => {
             setDocuments((prev) =>
               prev.map((d) =>
                 d.id === optimisticDocument.id ? { ...d, uploading: false } : d,
               ),
             );
             router.refresh();
-            return `"${file.name}" uploaded successfully`;
+            return {
+              message: `"${file.name}" uploaded successfully`,
+              description: `${data?.result?.chunks_created ?? 0} chunks created from ${data?.result?.pages_processed ?? 0} pages`,
+            };
           },
           error: (err) => {
             setDocuments((prev) =>
               prev.filter((d) => d.id !== optimisticDocument.id),
             );
-            return `Failed to upload "${file.name}": ${err.message}`;
+            return {
+              message: `Failed to upload "${file.name}"`,
+              description:
+                err.detail || err.message || "An unexpected error occurred",
+            };
           },
         });
 

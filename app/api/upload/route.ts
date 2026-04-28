@@ -69,8 +69,16 @@ export async function POST(request: NextRequest) {
   if (!backendResponse.ok) {
     const errText = await backendResponse.text();
     console.error("Python ingestion error:", errText);
+
+    // Python errors follow: { detail: { error, message, detail } }
+    const parsed = (() => { try { return JSON.parse(errText); } catch { return null; } })();
+
+    const backendDetail = parsed?.detail;
     return NextResponse.json(
-      { error: "Backend processing failed", detail: errText },
+      {
+        error: backendDetail?.message || "Backend processing failed",
+        detail: backendDetail?.detail || null,
+      },
       { status: backendResponse.status },
     );
   }
