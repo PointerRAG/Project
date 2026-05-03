@@ -50,6 +50,9 @@ class Settings(BaseSettings):
     # API Configuration
     API_V1_PREFIX: str = Field(default="/api/v1", description="API version 1 prefix")
     
+    # Reranking Configuration
+    SAVE_RERANKING_OUTPUT: bool = Field(default=False, description="Save reranking output to file")
+    
     @property
     def cors_origins_list(self) -> List[str]:
         """Return CORS origins as a list."""

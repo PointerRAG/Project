@@ -1,8 +1,11 @@
+import os
 import logging
 import re
 from typing import Dict, Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+
+from backend.core.config import settings
 
 def _post_process_context(text: str) -> str:
     """Enhance structure of numbered lists for the generation model."""
@@ -46,6 +49,14 @@ def generate_answer(request: GenerateRequest) -> Dict[str, Any]:
             rerank_service = get_rerank_service()
             top_docs = rerank_service.rerank_documents(request.query, retrieved_texts, top_k=3)
             context_str = "\n\n".join(top_docs)
+            
+            # Save the reranking output to an external file conditionally
+            if settings.SAVE_RERANKING_OUTPUT:
+                try:
+                    with open("ranking_output.txt", "w", encoding="utf-8") as f:
+                        f.write(context_str)
+                except Exception as e:
+                    logger.warning(f"Failed to write ranking output to file: {e}")
         else:
             top_docs = []
             context_str = ""
@@ -54,6 +65,7 @@ def generate_answer(request: GenerateRequest) -> Dict[str, Any]:
         if context_str:
             generation_service = get_generation_service()
             ai_content = generation_service.generate_answer(request.query, context_str)
+
         else:
             ai_content = "I do not have enough relevant context to answer this query."
 
